@@ -21,46 +21,14 @@
 # (for the actual gameplay)
 : render-3d
   column-one
-  # column-four
+  # column-two
+  # column-three
+  column-four
   return
 
 : column-one
-  # Look ahead to select right tiles
-  v3 := 0
-  v4 := 0
-  look-ahead
-  if v0 == 1 then jump column-one-wall-left
-  # No wall to the left
-  v3 := 1
-  v4 := 1
-  look-ahead
-  i := hall-one+0+0
-  if v0 == 0 then jump column-one-render
-  # Wall in front
-  v3 := 0
-  v4 := 1
-  look-ahead
-  i := wall-zero-zero+0+0
-  if v0 == 1 then jump column-one-render
-  # TODO: more levels of depth
-  i := wall-zero-one+0+0
-  jump column-one-render
-: column-one-wall-left
-  v3 := 1
-  v4 := 1
-  look-ahead
-  i := wall-zero+0+0
-  if v0 == 1 then jump column-one-render
-  # No wall in front
-  v3 := 0
-  v4 := 1
-  look-ahead
-  i := hall-zero+0+0
-  if v0 == 1 then jump column-one-render
-  # Corner ahead
-  i := hall-one+0+0
-: column-one-render
-  # Render tiles
+  i := nodes-column-one
+  walk
   v0 := 0
   v1 := 0
   sprite v0 v1 0
@@ -71,7 +39,8 @@
   return
 
 : column-four
-  i := hall-zero+48+0
+  i := nodes-column-four
+  walk
   v0 := 48
   v1 := 0
   sprite v0 v1 0
@@ -80,6 +49,95 @@
   v1 := 16
   sprite v0 v1 0
   return
+
+#####################
+# Nodes and leafs - the binary tree that does the decision making
+
+# Nodes represent decisions: given this point relative to the player, if there
+# is a wall there or not, go to this node or leaf. The most significant bit of
+# the target entry indicates if its a node (0) or a leaf (1).
+: nodes
+
+: nodes-column-one
+# X Y open wall
+  0 0 0x03 0x01       # = If no wall at relative coordinate (-1,0),
+  1 1 0x02 0x82       #   go to node 3, else to node 1
+  0 1 0x81 0x80
+  1 1 0x81 0x04       # = If no wall at relative coordinate (0, 1),
+  0 1 0x84 0x83       #   you have reached leaf 1, else go to node 4
+
+: nodes-column-four
+# X Y open wall
+  2 0 0x08 0x06 # node 5
+  1 1 0x07 0x87
+  2 1 0x86 0x85
+  1 1 0x86 0x09
+  2 1 0x89 0x88
+
+
+# Leafs represent images to be rendered. A path of nodes should always lead to
+# a leaf. The leafs themselves are pointers to the right images.
+: leafs
+
+  hall-zero+0+0
+  hall-one+0+0
+  wall-zero+0+0
+  wall-zero-zero+0+0
+  wall-zero-one+0+0
+
+  hall-zero+48+0
+  hall-one+48+0
+  wall-zero+48+0
+  wall-zero-zero+48+0
+  wall-zero-one+48+0
+
+#####################
+# This routine walks through the binary tree with nodes and leafs
+# Input: i pointing to a node
+# Output: i pointing to the image to be rendered
+: walk
+  # Load this node and find what's there
+  load v3
+  v5 := v2
+  v6 := v3
+  v3 := v0
+  v4 := v1
+  look-ahead
+  # Did we encounter a wall?
+  if v0 == 1 begin
+    v0 := v6
+  else
+    v0 := v5
+  end
+  # Is the next step a node or a leaf?
+  v1 := 0x80
+  v2 := v0
+  v2 &= v1
+  if v2 == 0x80 begin
+    # Next is a leaf, extract the pointer
+    i := leafs
+    v1 := 0b01111111
+    v0 &= v1
+    v0 <<= v0
+    i += v0
+    load v1
+    # We now have the address of the leaf image in v0 and v1
+    # Use self-modifying code trick to load this address in `i`:
+    v2 := 0xA0
+    v0 |= v2
+    i := walk-set-i
+    save v1
+: walk-set-i
+    0 0
+    return
+  else
+    # Next is a node, load it and restart
+    v0 <<= v0
+    v0 <<= v0
+    i := nodes
+    i += v0
+    jump walk
+  end
 
 #####################
 # Look at place (v3 - 1, v4) relative to the player
