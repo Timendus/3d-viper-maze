@@ -3,8 +3,8 @@
 # An Octojam 7 entry
 
 : main
-	lores
-	plane 3
+  lores
+  plane 3
 : main-redraw
   clear
   render-3d
@@ -252,38 +252,38 @@
 
 : render-map
   :alias X v2
-	:alias Y v3
-	X := 0
-	Y := 0
+  :alias Y v3
+  X := 0
+  Y := 0
 : render-map-loop
-	# Look up value at X,Y
-	v0 := X
-	v1 := Y
-	map-get
-	# Get pointer to right sprite
-	# Sprites are 8 bytes, so sprite = tiles + map value * 4
-	i := top-down-tiles
-	v0 <<= v0
-	v0 <<= v0
-	v0 <<= v0
-	i += v0
-	# Get coordinates in display space (x4)
-	v4 := X
-	v4 <<= v4
-	v4 <<= v4
-	v5 := Y
-	v5 <<= v5
-	v5 <<= v5
-	# Render
-	sprite v4 v5 4
-	X += 1
-	if X < 16 then jump render-map-loop
-	# Next row
-	X := 0
-	Y += 1
-	if Y < 8 then jump render-map-loop
+  # Look up value at X,Y
+  v0 := X
+  v1 := Y
+  map-get
+  # Get pointer to right sprite
+  # Sprites are 8 bytes, so sprite = tiles + map value * 4
+  i := top-down-tiles
+  v0 <<= v0
+  v0 <<= v0
+  v0 <<= v0
+  i += v0
+  # Get coordinates in display space (x4)
+  v4 := X
+  v4 <<= v4
+  v4 <<= v4
+  v5 := Y
+  v5 <<= v5
+  v5 <<= v5
+  # Render
+  sprite v4 v5 4
+  X += 1
+  if X < 16 then jump render-map-loop
+  # Next row
+  X := 0
+  Y += 1
+  if Y < 8 then jump render-map-loop
   # Done
-	return
+  return
 
 : render-player
   # Get player properties
@@ -330,15 +330,15 @@
 # Input: X in v0, Y in v1 (destructive)
 # Output: map value in v0
 : map-get
-	i := map
-	i += v0
-	v1 <<= v1
-	v1 <<= v1
-	v1 <<= v1
-	v1 <<= v1
-	i += v1
-	load v0
-	return
+  i := map
+  i += v0
+  v1 <<= v1
+  v1 <<= v1
+  v1 <<= v1
+  v1 <<= v1
+  i += v1
+  load v0
+  return
 
 : player
   2 1 # X, Y
@@ -350,26 +350,26 @@
 
 : map
   1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
-	1 2 0 0 1 1 0 0 0 0 0 0 1 0 0 1
-	1 1 1 0 1 0 0 1 0 1 1 0 1 0 1 1
-	1 0 0 0 0 0 1 1 0 0 0 0 0 0 1 1
-	1 1 0 1 1 0 0 1 1 1 0 1 1 0 0 1
-	1 0 0 0 0 0 1 1 0 0 0 0 1 0 1 1
-	1 1 0 1 1 0 0 0 0 1 0 1 1 0 3 1
-	1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+  1 2 0 0 1 1 0 0 0 0 0 0 1 0 0 1
+  1 1 1 0 1 0 0 1 0 1 1 0 1 0 1 1
+  1 0 0 0 0 0 1 1 0 0 0 0 0 0 1 1
+  1 1 0 1 1 0 0 1 1 1 0 1 1 0 0 1
+  1 0 0 0 0 0 1 1 0 0 0 0 1 0 1 1
+  1 1 0 1 1 0 0 0 0 1 0 1 1 0 3 1
+  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 
 : top-down-tiles
 
 # empty
-	0b11110000
-	0b11110000
-	0b11110000
-	0b11110000
+  0b11110000
+  0b11110000
+  0b11110000
+  0b11110000
 
-	0b00000000
-	0b00000000
-	0b00000000
-	0b00000000
+  0b00000000
+  0b00000000
+  0b00000000
+  0b00000000
 
 # wall
   0b00000000
@@ -377,10 +377,10 @@
   0b00000000
   0b00000000
 
-	0b01010000
-	0b10100000
   0b01010000
-	0b10100000
+  0b10100000
+  0b01010000
+  0b10100000
 
 # player starting position
   0b11110000
@@ -395,14 +395,14 @@
 
 # finish
   0b11110000
-	0b10010000
-	0b11110000
-	0b11110000
+  0b10010000
+  0b11110000
+  0b11110000
 
-	0b11110000
-	0b10010000
-	0b11110000
-	0b11110000
+  0b11110000
+  0b10010000
+  0b11110000
+  0b11110000
 
 : player-tile
 
