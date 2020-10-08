@@ -1,7 +1,7 @@
 # Untitled Chip-8 Game
 
-A fun project for Octojam 7. Challenge: write a game for the illustrious Chip-8
-platform in the month of October.
+A fun project for [Octojam 7](https://itch.io/jam/octojam-7). Challenge: write a
+game for the illustrious Chip-8 platform in the month of October.
 
 Of course I initially wanted to use [my own toolchain for Chip-8](https://github.com/Timendus/chip-8),
 but unfortunately I need to borrow a few instructions from both SuperChip and
