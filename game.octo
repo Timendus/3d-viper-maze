@@ -61,19 +61,18 @@
 : nodes-column-one
 # X Y open wall
   0 0 0x03 0x01       # = If no wall at relative coordinate (-1,0),
-  1 1 0x02 0x82       #   go to node 3, else to node 1
-  0 1 0x81 0x80
+  1 1 0x02 0x83       #   go to node 3, else to node 1
+  0 1 0x82 0x80
   1 1 0x81 0x04       # = If no wall at relative coordinate (0, 1),
-  0 1 0x84 0x83       #   you have reached leaf 1, else go to node 4
+  0 1 0x85 0x84       #   you have reached leaf 1, else go to node 4
 
 : nodes-column-four
 # X Y open wall
   2 0 0x08 0x06 # node 5
-  1 1 0x07 0x87
-  2 1 0x86 0x85
-  1 1 0x86 0x09
-  2 1 0x89 0x88
-
+  1 1 0x07 0x89
+  2 1 0x88 0x86
+  1 1 0x87 0x09
+  2 1 0x8B 0x8A
 
 # Leafs represent images to be rendered. A path of nodes should always lead to
 # a leaf. The leafs themselves are pointers to the right images.
@@ -82,13 +81,15 @@
   # Column 1
   i := long hall-0+0+0 ;
   i := long hall-1+0+0 ;
+  i := long hall-2+0+0 ;
   i := long wall-1+0+0 ;
   i := long wall-1-1+0+0 ;
   i := long wall-1-2+0+0 ;
 
   # Column 4
-  i := long hall-0+48+0 ;
+  i := long hall-0+48+0 ;  # leaf 6
   i := long hall-1+48+0 ;
+  i := long hall-2+48+0 ;
   i := long wall-1+48+0 ;
   i := long wall-1-1+48+0 ;
   i := long wall-1-2+48+0 ;
