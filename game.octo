@@ -21,7 +21,7 @@
 # (for the actual gameplay)
 : render-3d
   column-one
-  # column-two
+  column-two
   # column-three
   column-four
   return
@@ -929,14 +929,15 @@
 }
 
 :macro c1node X { :byte { 0 + X } }
-:macro c2node X { :byte { 0 + X } }
+:macro c2node X { :byte { 5 + X } }
 :macro c3node X { :byte { 0 + X } }
-:macro c4node X { :byte { 5 + X } }
+:macro c4node X { :byte { 5 + 16 + X } }
 
 :macro c1leaf X { :byte { 0x80      + X } }
 :macro c2leaf X { :byte { 0x80 +  6 + X } }
 :macro c3leaf X { :byte { 0x80 + 24 + X } }
-:macro c4leaf X { :byte { 0x80 + 42 + X } }
+:macro c4leaf X { :byte { 0x80 + 43 + X } }
+
 
 # Nodes represent decisions: given this point relative to the player, if there
 # is a wall there or not, go to this node or leaf. The most significant bit of
@@ -953,6 +954,23 @@
   coord -1 1  c1leaf 5  c1leaf 4  # node 4
 
 : nodes-column-two
+#        X Y  no wall    wall
+  coord  0 1  c2node 1   c2leaf 7  # Wall right in front
+  coord  0 2  c2node 2   c2leaf 8  # Wall directly ahead
+  coord -1 2  c2node 3   c2node 9  # Inroad to the left at 3
+  coord  0 3  c2node 4   c2leaf 10 # Corner veering to the left at 3
+  coord  0 4  c2node 5   c2leaf 12 # Road to the left with dead end ahead
+  coord  0 5  c2node 7   c2node 6
+  coord -1 4  c2leaf 17  c2leaf 15 # Road to the left with further dead end or second road to the left
+  coord -1 4  c2leaf 1   c2node 8
+  coord -1 5  c2leaf 2   c2leaf 0
+  coord -1 3  c2node 10  c2node 12
+  coord  0 4  c2node 11  c2leaf 13
+  coord -1 5  c2leaf 4   c2leaf 3
+  coord -1 4  c2node 12  c2node 13
+  coord  0 5  c2leaf 5   c2leaf 16
+  coord  0 5  c2node 14  c2leaf 14
+  coord -1 5  c2leaf 6   c2leaf 18
 
 : nodes-column-three
 
@@ -996,6 +1014,7 @@
   pointer wall-5-3+16+0   # leaf 15
   pointer wall-5-5+16+0   # leaf 16
   pointer wall-5-5-3+16+0 # leaf 17
+  pointer hall-0+16+0
 
   # Column 3
   pointer hall-3+32+0     # leaf 0, index 24
