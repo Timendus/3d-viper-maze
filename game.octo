@@ -27,25 +27,25 @@
   return
 
 : column-one
-  i := nodes-column-one
+  i := long nodes-column-one
   walk
   v0 := 0
   jump draw-column
 
 : column-two
-  i := nodes-column-two
+  i := long nodes-column-two
   walk
   v0 := 16
   jump draw-column
 
 : column-three
-  i := nodes-column-three
+  i := long nodes-column-three
   walk
   v0 := 32
   jump draw-column
 
 : column-four
-  i := nodes-column-four
+  i := long nodes-column-four
   walk
   v0 := 48
   # Fall through
@@ -58,66 +58,6 @@
   v1 := 16
   sprite v0 v1 0
   return
-
-#####################
-# Nodes and leafs - the binary tree that does the decision making
-
-# Convenience macros
-:macro c1node X { :byte { 0 + X } }
-:macro c2node X { :byte { 0 + X } }
-:macro c3node X { :byte { 0 + X } }
-:macro c4node X { :byte { 5 + X } }
-
-:macro c1leaf X { :byte { 0x80 + X } }
-:macro c2leaf X { :byte { 0x80 + X } }
-:macro c3leaf X { :byte { 0x80 + X } }
-:macro c4leaf X { :byte { 0x86 + X } }
-
-# Nodes represent decisions: given this point relative to the player, if there
-# is a wall there or not, go to this node or leaf. The most significant bit of
-# the target entry indicates if its a node (0) or a leaf (1).
-: nodes
-
-: nodes-column-one
-# X Y    open      wall
-  0 0  c1node 3  c1node 1       # = If no wall at relative coordinate (-1,0),
-  1 1  c1node 2  c1leaf 3       #   go to node 3, else to node 1
-  0 1  c1leaf 2  c1leaf 0
-  1 1  c1leaf 1  c1node 4       # = If no wall at relative coordinate (0, 1),
-  0 1  c1leaf 5  c1leaf 4       #   you have reached leaf 1, else go to node 4
-
-: nodes-column-two
-
-: nodes-column-three
-
-: nodes-column-four
-# X Y    open      wall
-  2 0  c4node 3  c4node 1   # index 5
-  1 1  c4node 2  c4leaf 3
-  2 1  c4leaf 2  c4leaf 0
-  1 1  c4leaf 1  c4node 4
-  2 1  c4leaf 5  c1leaf 4
-
-
-# Leafs represent images to be rendered. A path of nodes should always lead to
-# a leaf. The leafs themselves are pointers to the right images.
-: leafs
-
-  # Column 1
-  i := long hall-0+0+0 ;
-  i := long hall-1+0+0 ;
-  i := long hall-2+0+0 ;
-  i := long wall-1+0+0 ;
-  i := long wall-1-1+0+0 ;
-  i := long wall-1-2+0+0 ;
-
-  # Column 4
-  i := long hall-0+48+0 ;   # index 6
-  i := long hall-1+48+0 ;
-  i := long hall-2+48+0 ;
-  i := long wall-1+48+0 ;
-  i := long wall-1-1+48+0 ;
-  i := long wall-1-2+48+0 ;
 
 #####################
 # This routine walks through the binary tree with nodes and leafs
@@ -143,19 +83,25 @@
   v2 &= v1
   if v2 == 0x80 begin
     # Next is a leaf, extract the pointer
-    i := leafs
+    i := long leafs
     v1 := 0b01111111
     v0 &= v1 # AND out the leaf indicator bit
-    v1 := v0
-    v0 += v1 # Do v0 times 6 bytes
-    v0 += v1
     v0 <<= v0
-    jump0 leafs # Jump to set and return in leaf table
+    i += v0
+    load v1
+    # We now have the address of the leaf image in v0 and v1
+    # Use self-modifying code trick to (long) load this address in `i`:
+    i := walk-set-i
+    save v1
+    0xF0 0x00 # i := long ...
+: walk-set-i
+    0 0
+    return
   else
     # Next is a node, load it and restart
     v0 <<= v0
     v0 <<= v0
-    i := nodes
+    i := long nodes
     i += v0
     jump walk
   end
@@ -951,3 +897,118 @@
 : wall-5-5+32+16
   0xa 0x0 0xa 0x0 0xfe 0x0 0x3 0x0 0x0 0xc0 0x0 0x30 0x0 0xc 0x0 0x3 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0
   0xff 0xff 0xff 0xff 0xff 0xff 0x3 0xff 0x0 0xff 0x0 0x3f 0x0 0xf 0x0 0x3 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0
+
+
+#####################
+# Nodes and leafs - the binary tree that does the decision making
+# This needs to be down here in order to be able to reference the above labels
+# in macros, unfortunately...
+
+# Convenience macros
+
+:macro coord X Y {
+  :byte { X + 1 }
+  :byte { Y }
+}
+
+:macro pointer ADDRESS {
+    :byte { ADDRESS >> 8 }
+    :byte { ADDRESS }
+}
+
+:macro c1node X { :byte { 0 + X } }
+:macro c2node X { :byte { 0 + X } }
+:macro c3node X { :byte { 0 + X } }
+:macro c4node X { :byte { 5 + X } }
+
+:macro c1leaf X { :byte { 0x80      + X } }
+:macro c2leaf X { :byte { 0x80 +  6 + X } }
+:macro c3leaf X { :byte { 0x80 + 24 + X } }
+:macro c4leaf X { :byte { 0x80 + 42 + X } }
+
+# Nodes represent decisions: given this point relative to the player, if there
+# is a wall there or not, go to this node or leaf. The most significant bit of
+# the target entry indicates if its a node (0) or a leaf (1). This
+# implementation detail is hidden through the macros.
+: nodes
+
+: nodes-column-one
+#        X Y  no wall   wall
+  coord -1 0  c1node 3  c1node 1  # node 0
+  coord  0 1  c1node 2  c1leaf 3  # node 1
+  coord -1 1  c1leaf 2  c1leaf 0  # node 2
+  coord  0 1  c1leaf 1  c1node 4  # node 3
+  coord -1 1  c1leaf 5  c1leaf 4  # node 4
+
+: nodes-column-two
+
+: nodes-column-three
+
+: nodes-column-four
+#        X Y  no wall   wall
+  coord  1 0  c4node 3  c4node 1  # node 0, index 5
+  coord  0 1  c4node 2  c4leaf 3  # node 1
+  coord  1 1  c4leaf 2  c4leaf 0  # node 2
+  coord  0 1  c4leaf 1  c4node 4  # node 3
+  coord  1 1  c4leaf 5  c1leaf 4  # node 4
+
+
+# Leafs represent images to be rendered. A path of nodes should always lead to
+# a leaf. The leafs themselves are pointers to the right images.
+: leafs
+
+  # Column 1
+  pointer hall-0+0+0      # leaf 0
+  pointer hall-1+0+0      # leaf 1
+  pointer hall-2+0+0      # leaf 2
+  pointer wall-1+0+0      # leaf 3
+  pointer wall-1-1+0+0    # leaf 4
+  pointer wall-1-2+0+0    # leaf 5
+
+  # Column 2
+  pointer hall-3+16+0     # leaf 0, index 6
+  pointer hall-3-5+16+0   # leaf 1
+  pointer hall-3-6+16+0   # leaf 2
+  pointer hall-4+16+0     # leaf 3
+  pointer hall-4-6+16+0   # leaf 4
+  pointer hall-5+16+0     # leaf 5
+  pointer hall-6+16+0     # leaf 6
+  pointer wall-1+16+0     # leaf 7
+  pointer wall-2+16+0     # leaf 8
+  pointer wall-3+16+0     # leaf 9
+  pointer wall-3-3+16+0   # leaf 10
+  pointer wall-4+16+0     # leaf 11
+  pointer wall-4-3+16+0   # leaf 12
+  pointer wall-4-4+16+0   # leaf 13
+  pointer wall-5+16+0     # leaf 14
+  pointer wall-5-3+16+0   # leaf 15
+  pointer wall-5-5+16+0   # leaf 16
+  pointer wall-5-5-3+16+0 # leaf 17
+
+  # Column 3
+  pointer hall-3+32+0     # leaf 0, index 24
+  pointer hall-3-5+32+0   # leaf 1
+  pointer hall-3-6+32+0   # leaf 2
+  pointer hall-4+32+0     # leaf 3
+  pointer hall-4-6+32+0   # leaf 4
+  pointer hall-5+32+0     # leaf 5
+  pointer hall-6+32+0     # leaf 6
+  pointer wall-1+32+0     # leaf 7
+  pointer wall-2+32+0     # leaf 8
+  pointer wall-3+32+0     # leaf 9
+  pointer wall-3-3+32+0   # leaf 10
+  pointer wall-4+32+0     # leaf 11
+  pointer wall-4-3+32+0   # leaf 12
+  pointer wall-4-4+32+0   # leaf 13
+  pointer wall-5+32+0     # leaf 14
+  pointer wall-5-3+32+0   # leaf 15
+  pointer wall-5-5+32+0   # leaf 16
+  pointer wall-5-5-3+32+0 # leaf 17
+
+  # Column 4
+  pointer hall-0+48+0     # leaf 0, index 42
+  pointer hall-1+48+0     # leaf 1
+  pointer hall-2+48+0     # leaf 2
+  pointer wall-1+48+0     # leaf 3
+  pointer wall-1-1+48+0   # leaf 4
+  pointer wall-1-2+48+0   # leaf 5
