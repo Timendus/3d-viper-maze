@@ -28,29 +28,29 @@
 
 : column-one
   i := long nodes-column-one
-  walk
+  find-sprite
   v0 := 0
-  jump draw-column
+  jump render-column
 
 : column-two
   i := long nodes-column-two
-  walk
+  find-sprite
   v0 := 16
-  jump draw-column
+  jump render-column
 
 : column-three
   i := long nodes-column-three
-  walk
+  find-sprite
   v0 := 32
-  jump draw-column
+  jump render-column
 
 : column-four
   i := long nodes-column-four
-  walk
+  find-sprite
   v0 := 48
   # Fall through
 
-: draw-column
+: render-column
   v1 := 0
   sprite v0 v1 0
   v1 := 64
@@ -63,7 +63,7 @@
 # This routine walks through the binary tree with nodes and leafs
 # Input: i pointing to a node
 # Output: i pointing to the image to be rendered
-: walk
+: find-sprite
   # Load this node and find what's there
   load v3
   v5 := v2
@@ -103,7 +103,7 @@
     v0 <<= v0
     i := long nodes
     i += v0
-    jump walk
+    jump find-sprite
   end
 
 #####################
@@ -365,6 +365,10 @@
   load v0
   return
 
+
+#####################
+# Game state
+
 : player
   2 1 # X, Y
 : player-orientation
@@ -382,6 +386,10 @@
   1 0 0 0 0 0 1 1 0 0 0 0 1 0 1 1
   1 1 0 1 1 0 0 0 0 1 0 1 1 0 3 1
   1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+
+
+#####################
+# Tiles for the mini-map
 
 : top-down-tiles
 
@@ -475,6 +483,10 @@
   0b01100000
   0b00000000
 
+
+#####################
+# Faux 3D images
+# Data generated from PNG files in screens directory
 
 : hall-0+0+0
   0xff 0xfe 0x3f 0xff 0xf 0xff 0x3 0xff 0x0 0xff 0x0 0x3f 0x0 0xf 0x0 0x3 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0 0x0
