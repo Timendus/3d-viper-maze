@@ -30,18 +30,27 @@
   i := nodes-column-one
   walk
   v0 := 0
-  v1 := 0
-  sprite v0 v1 0
-  v1 := 64
-  i += v1
-  v1 := 16
-  sprite v0 v1 0
-  return
+  jump draw-column
+
+: column-two
+  i := nodes-column-two
+  walk
+  v0 := 16
+  jump draw-column
+
+: column-three
+  i := nodes-column-three
+  walk
+  v0 := 32
+  jump draw-column
 
 : column-four
   i := nodes-column-four
   walk
   v0 := 48
+  # Fall through
+
+: draw-column
   v1 := 0
   sprite v0 v1 0
   v1 := 64
@@ -53,26 +62,42 @@
 #####################
 # Nodes and leafs - the binary tree that does the decision making
 
+# Convenience macros
+:macro c1node X { :byte { 0 + X } }
+:macro c2node X { :byte { 0 + X } }
+:macro c3node X { :byte { 0 + X } }
+:macro c4node X { :byte { 5 + X } }
+
+:macro c1leaf X { :byte { 0x80 + X } }
+:macro c2leaf X { :byte { 0x80 + X } }
+:macro c3leaf X { :byte { 0x80 + X } }
+:macro c4leaf X { :byte { 0x86 + X } }
+
 # Nodes represent decisions: given this point relative to the player, if there
 # is a wall there or not, go to this node or leaf. The most significant bit of
 # the target entry indicates if its a node (0) or a leaf (1).
 : nodes
 
 : nodes-column-one
-# X Y open wall
-  0 0 0x03 0x01       # = If no wall at relative coordinate (-1,0),
-  1 1 0x02 0x83       #   go to node 3, else to node 1
-  0 1 0x82 0x80
-  1 1 0x81 0x04       # = If no wall at relative coordinate (0, 1),
-  0 1 0x85 0x84       #   you have reached leaf 1, else go to node 4
+# X Y    open      wall
+  0 0  c1node 3  c1node 1       # = If no wall at relative coordinate (-1,0),
+  1 1  c1node 2  c1leaf 3       #   go to node 3, else to node 1
+  0 1  c1leaf 2  c1leaf 0
+  1 1  c1leaf 1  c1node 4       # = If no wall at relative coordinate (0, 1),
+  0 1  c1leaf 5  c1leaf 4       #   you have reached leaf 1, else go to node 4
+
+: nodes-column-two
+
+: nodes-column-three
 
 : nodes-column-four
-# X Y open wall
-  2 0 0x08 0x06 # node 5
-  1 1 0x07 0x89
-  2 1 0x88 0x86
-  1 1 0x87 0x09
-  2 1 0x8B 0x8A
+# X Y    open      wall
+  2 0  c4node 3  c4node 1   # index 5
+  1 1  c4node 2  c4leaf 3
+  2 1  c4leaf 2  c4leaf 0
+  1 1  c4leaf 1  c4node 4
+  2 1  c4leaf 5  c1leaf 4
+
 
 # Leafs represent images to be rendered. A path of nodes should always lead to
 # a leaf. The leafs themselves are pointers to the right images.
@@ -87,7 +112,7 @@
   i := long wall-1-2+0+0 ;
 
   # Column 4
-  i := long hall-0+48+0 ;  # leaf 6
+  i := long hall-0+48+0 ;   # index 6
   i := long hall-1+48+0 ;
   i := long hall-2+48+0 ;
   i := long wall-1+48+0 ;
