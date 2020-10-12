@@ -370,7 +370,7 @@
 # Game state
 
 : player
-  2 1 # X, Y
+  1 1 # X, Y
 : player-orientation
   1 # orientation
 
@@ -916,7 +916,12 @@
 # This needs to be down here in order to be able to reference the above labels
 # in macros, unfortunately...
 
-# Convenience macros
+# Convenience macros and constants
+
+:const numc14nodes 5
+:const numc23nodes 18
+:const numc14leafs 6
+:const numc23leafs 19
 
 :macro coord X Y {
   :byte { X + 1 }
@@ -928,15 +933,15 @@
     :byte { ADDRESS }
 }
 
-:macro c1node X { :byte { 0 + X } }
-:macro c2node X { :byte { 5 + X } }
-:macro c3node X { :byte { 5 + 18 + X } }
-:macro c4node X { :byte { 5 + 18 + 18 + X } }
+:macro c1node X { :byte { X } }
+:macro c2node X { :byte { numc14nodes + X } }
+:macro c3node X { :byte { numc14nodes + numc23nodes + X } }
+:macro c4node X { :byte { numc14nodes + numc23nodes + numc23nodes + X } }
 
 :macro c1leaf X { :byte { 0x80 + X } }
-:macro c2leaf X { :byte { 0x80 + 6 + X } }
-:macro c3leaf X { :byte { 0x80 + 6 + 19 + X } }
-:macro c4leaf X { :byte { 0x80 + 6 + 19 + 19 + X } }
+:macro c2leaf X { :byte { 0x80 + numc14leafs + X } }
+:macro c3leaf X { :byte { 0x80 + numc14leafs + numc23leafs + X } }
+:macro c4leaf X { :byte { 0x80 + numc14leafs + numc23leafs + numc23leafs + X } }
 
 
 # Nodes represent decisions: given this point relative to the player, if there
@@ -997,7 +1002,7 @@
 
 : nodes-column-four
 #        X Y  no wall   wall
-  coord  1 0  c4node 3  c4node 1  # node 0, index 5
+  coord  1 0  c4node 3  c4node 1  # node 0
   coord  0 1  c4node 2  c4leaf 3  # node 1
   coord  1 1  c4leaf 2  c4leaf 0  # node 2
   coord  0 1  c4leaf 1  c4node 4  # node 3
