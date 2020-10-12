@@ -25,9 +25,10 @@ from 1981. I haven't seen any programs for Chip-8 do anything with 3D or pseudo
   * [ ] Make the gazillion images prettier
 * [ ] 'Sprite' the right images to the screen depending on position and map
   * [x] Column one
-  * [ ] Column two
-  * [ ] Column three
+  * [x] Column two
+  * [x] Column three
   * [x] Column four
+  * [ ] Bugfix S-bends in the hallway
 * [x] Allow switching between 3D view and minimap view
 * [ ] Randomly generate mazes?
 * [ ] Add a big bad enemy?
