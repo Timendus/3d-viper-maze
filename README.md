@@ -20,16 +20,19 @@ from 1981. I haven't seen any programs for Chip-8 do anything with 3D or pseudo
 * [x] Render model of map as a top-down "minimap" (for debugging and fun)
 * [x] Handle keypresses and update player model accordingly
 * [x] Write a convert tool to go from images to binary data that Octo understands
-* [ ] Artwork
+* [x] Artwork
   * [x] Draw a gazillion images of "3D" walls
-  * [ ] Make the gazillion images prettier
-* [ ] 'Sprite' the right images to the screen depending on position and map
+  * [x] Make the gazillion images prettier
+* [x] 'Sprite' the right images to the screen depending on position and map
   * [x] Column one
   * [x] Column two
   * [x] Column three
   * [x] Column four
-  * [ ] Bugfix S-bends in the hallway
+  * [x] Bugfix S-bends in the hallway
 * [x] Allow switching between 3D view and minimap view
-* [ ] Randomly generate mazes?
-* [ ] Add a big bad enemy?
-* [ ] Add an overly convoluted introduction text?
+* [ ] Add vipers that kill you and send you back to start (three lives?)
+* [ ] Add buttons that change walls
+* [ ] Add creepy texts
+* [ ] Add music
+* [ ] Add title screen
+* [ ] Add an overly convoluted introduction text
