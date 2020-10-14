@@ -76,11 +76,19 @@
 # Output: i pointing to the image to be rendered
 : find-sprite
   # Load this node and find what's there
-  load v3
-  v5 := v2
-  v6 := v3
+  load v2
+  v5 := v1
+  v6 := v2
+  # Coordinates are stored together in first byte, so unpack
+  v1 := 0x0F
+  v4 := v0
+  v4 &= v1
+  v0 >>= v0
+  v0 >>= v0
+  v0 >>= v0
+  v0 >>= v0
+  v0 &= v1
   v3 := v0
-  v4 := v1
   look-ahead
   # Did we encounter a wall?
   if v0 == 1 begin
@@ -110,9 +118,9 @@
     return
   else
     # Next is a node, load it and restart
-    v0 <<= v0
-    v0 <<= v0
     i := long nodes
+    i += v0
+    i += v0
     i += v0
     jump find-sprite
   end
@@ -1207,13 +1215,12 @@
 # Convenience macros and constants
 
 :const numc14nodes 14
-:const numc23nodes 18
+:const numc23nodes 24
 :const numc14leafs 14
 :const numc23leafs 25
 
 :macro coord X Y {
-  :byte { X + 1 }
-  :byte { Y }
+  :byte { ( ( X + 1 ) << 4 ) | Y }
 }
 
 :macro pointer ADDRESS {
@@ -1260,7 +1267,7 @@
   coord  0 1  c2node 1   c2leaf 8   # node 0
   coord  0 2  c2node 2   c2leaf 9   # node 1
   coord -1 2  c2node 3   c2node 9   # node 2
-  coord  0 3  c2node 4   c2leaf 11  # node 3
+  coord  0 3  c2node 4   c2node 18  # node 3
   coord  0 4  c2node 5   c2leaf 16  # node 4
   coord  0 5  c2node 6   c2node 8   # node 5
   coord -1 4  c2leaf 2   c2node 7   # node 6
@@ -1268,20 +1275,26 @@
   coord -1 4  c2leaf 23  c2leaf 21  # node 8
   coord  0 3  c2node 10  c2leaf 10  # node 9
   coord -1 3  c2node 11  c2node 13  # node 10
-  coord  0 4  c2node 12  c2leaf 17  # node 11
+  coord  0 4  c2node 12  c2node 21  # node 11
   coord -1 5  c2leaf 5   c2leaf 4   # node 12
   coord  0 4  c2node 14  c2leaf 15  # node 13
   coord -1 4  c2node 15  c2node 16  # node 14
-  coord  0 5  c2leaf 6   c2leaf 22  # node 15
+  coord  0 5  c2leaf 6   c2node 23  # node 15
   coord  0 5  c2node 17  c2leaf 20  # node 16
   coord -1 5  c2leaf 7   c2leaf 0   # node 17
+  coord -1 3  c2node 19  c2leaf 11  # node 18
+  coord -1 4  c2node 20  c2leaf 12  # node 19
+  coord -1 5  c2leaf 14  c2leaf 13  # node 20
+  coord -1 4  c2node 22  c2leaf 17  # node 21
+  coord -1 5  c2leaf 19  c2leaf 18  # node 22
+  coord -1 5  c2leaf 24  c2leaf 22  # node 23
 
 : nodes-column-three
 #        X Y  no wall    wall
   coord  0 1  c3node 1   c3leaf 8   # node 0
   coord  0 2  c3node 2   c3leaf 9   # node 1
   coord  1 2  c3node 3   c3node 9   # node 2
-  coord  0 3  c3node 4   c3leaf 11  # node 3
+  coord  0 3  c3node 4   c3node 18  # node 3
   coord  0 4  c3node 5   c3leaf 16  # node 4
   coord  0 5  c3node 6   c3node 8   # node 5
   coord  1 4  c3leaf 2   c3node 7   # node 6
@@ -1289,13 +1302,19 @@
   coord  1 4  c3leaf 23  c3leaf 21  # node 8
   coord  0 3  c3node 10  c3leaf 10  # node 9
   coord  1 3  c3node 11  c3node 13  # node 10
-  coord  0 4  c3node 12  c3leaf 17  # node 11
+  coord  0 4  c3node 12  c3node 21  # node 11
   coord  1 5  c3leaf 5   c3leaf 4   # node 12
   coord  0 4  c3node 14  c3leaf 15  # node 13
   coord  1 4  c3node 15  c3node 16  # node 14
-  coord  0 5  c3leaf 6   c3leaf 22  # node 15
+  coord  0 5  c3leaf 6   c3node 23  # node 15
   coord  0 5  c3node 17  c3leaf 20  # node 16
   coord  1 5  c3leaf 7   c3leaf 0   # node 17
+  coord  1 3  c3node 19  c3leaf 11  # node 18
+  coord  1 4  c3node 20  c3leaf 12  # node 19
+  coord  1 5  c3leaf 14  c3leaf 13  # node 20
+  coord  1 4  c3node 22  c3leaf 17  # node 21
+  coord  1 5  c3leaf 19  c3leaf 18  # node 22
+  coord  1 5  c3leaf 24  c3leaf 22  # node 23
 
 : nodes-column-four
 #        X Y  no wall   wall
