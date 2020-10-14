@@ -1206,7 +1206,7 @@
 
 # Convenience macros and constants
 
-:const numc14nodes 5
+:const numc14nodes 14
 :const numc23nodes 18
 :const numc14leafs 14
 :const numc23leafs 25
@@ -1240,11 +1240,20 @@
 
 : nodes-column-one
 #        X Y  no wall   wall
-  coord -1 0  c1node 3  c1node 1  # node 0
-  coord  0 1  c1node 2  c1leaf 3  # node 1
-  coord -1 1  c1leaf 2  c1leaf 0  # node 2
-  coord  0 1  c1leaf 1  c1node 4  # node 3
-  coord -1 1  c1leaf 5  c1leaf 4  # node 4
+  coord -1 0  c1node 3  c1node 1   # node 0
+  coord  0 1  c1node 2  c1leaf 3   # node 1
+  coord -1 1  c1node 9  c1leaf 0   # node 2
+  coord  0 1  c1leaf 1  c1node 4   # node 3
+  coord -1 1  c1node 5  c1leaf 4   # node 4
+  coord -1 2  c1node 6  c1leaf 5   # node 5
+  coord -1 3  c1node 7  c1leaf 6   # node 6
+  coord -1 4  c1node 8  c1leaf 7   # node 7
+  coord -1 5  c1leaf 9  c1leaf 8   # node 8
+  coord  0 2  c1leaf 2  c1node 10  # node 9
+  coord -1 2  c1node 11 c1leaf 2   # node 10
+  coord -1 3  c1node 12 c1leaf 10  # node 11
+  coord -1 4  c1node 13 c1leaf 11  # node 12
+  coord -1 5  c1leaf 13 c1leaf 12  # node 13
 
 : nodes-column-two
 #        X Y  no wall    wall
@@ -1290,11 +1299,20 @@
 
 : nodes-column-four
 #        X Y  no wall   wall
-  coord  1 0  c4node 3  c4node 1  # node 0
-  coord  0 1  c4node 2  c4leaf 3  # node 1
-  coord  1 1  c4leaf 2  c4leaf 0  # node 2
-  coord  0 1  c4leaf 1  c4node 4  # node 3
-  coord  1 1  c4leaf 5  c1leaf 4  # node 4
+  coord  1 0  c4node 3  c4node 1   # node 0
+  coord  0 1  c4node 2  c4leaf 3   # node 1
+  coord  1 1  c4node 9  c4leaf 0   # node 2
+  coord  0 1  c4leaf 1  c4node 4   # node 3
+  coord  1 1  c4node 5  c4leaf 4   # node 4
+  coord  1 2  c4node 6  c4leaf 5   # node 5
+  coord  1 3  c4node 7  c4leaf 6   # node 6
+  coord  1 4  c4node 8  c4leaf 7   # node 7
+  coord  1 5  c4leaf 9  c4leaf 8   # node 8
+  coord  0 2  c4leaf 2  c4node 10  # node 9
+  coord  1 2  c4node 11 c4leaf 2   # node 10
+  coord  1 3  c4node 12 c4leaf 10  # node 11
+  coord  1 4  c4node 13 c4leaf 11  # node 12
+  coord  1 5  c4leaf 13 c4leaf 12  # node 13
 
 
 # Leafs represent images to be rendered. A path of nodes should always lead to
