@@ -28,11 +28,11 @@
 # Render the map to the screen in pseudo-3D
 # (for the actual gameplay)
 : render-3d
-  column-one
-  clock-tick
   column-two
   clock-tick
   column-three
+  clock-tick
+  column-one
   clock-tick
   column-four
   return
