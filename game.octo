@@ -394,33 +394,33 @@
   v0 := delay
   if v0 != 0 then return
 
-	# Load and update our position in the song
-	i := music-position
-	load v0
-	v1 := v0
-	v0 += 1
+  # Load and update our position in the song
+  i := music-position
+  load v0
+  v1 := v0
+  v0 += 1
   if v0 > 63 then v0 := 0 # Hardcoded progression of 64 steps for now
-	i := music-position
-	save v0
+  i := music-position
+  save v0
 
-	# Load the pointer to the right audio sample
-	i := long music-score
-	i += v1
+  # Load the pointer to the right audio sample
+  i := long music-score
   i += v1
   i += v1
-	load v2
-	i := play-music-smc
-	save v1
+  i += v1
+  load v2
+  i := play-music-smc
+  save v1
   0xF0 0x00 # i := long ...
 : play-music-smc
-	0 0
+  0 0
 
   # Play the sound!
-	audio
-	delay := v2
-	vf := 255
-	buzzer := vf
-	return
+  audio
+  delay := v2
+  vf := 255
+  buzzer := vf
+  return
 
 : play-click
   i := long click
@@ -1508,14 +1508,14 @@
 # Songs
 
 : music-score
-	note D$4 20  rest 20  note G$4 20  rest 20  note D$4 20  rest 20  note G$4 20  rest 20
-	note D-4 10  rest 10  note G$4 10  rest 10  note D-4 10  rest 10  note G$4 10  rest 10
+  note D$4 20  rest 20  note G$4 20  rest 20  note D$4 20  rest 20  note G$4 20  rest 20
   note D-4 10  rest 10  note G$4 10  rest 10  note D-4 10  rest 10  note G$4 10  rest 10
-	note C$4 20  rest 20  note G$4 20  rest 20  note C$4 20  rest 20  note G$4 20  rest 20
-	note C-4 20  rest 20  note G$4 20  rest 20  note C-4 20  rest 20  note C$4 20  note D-4 20
-	note D$4 20  rest 20  note G$4 20  rest 20  note D$4 20  rest 20  note G$4 20  rest 20
-	note D-4 20  rest 20  note G$4 20  rest 20  note D-4 20  rest 20  note G$4 20  rest 20
-	note C$4 20  rest 20  note G$4 20  rest 20  note C$4 20  rest 20  note G$4 20  rest 20
-	note B-4 20  rest 20  note A$4 20  rest 20  note G$4 20  rest 20  rest 20      rest 20
+  note D-4 10  rest 10  note G$4 10  rest 10  note D-4 10  rest 10  note G$4 10  rest 10
+  note C$4 20  rest 20  note G$4 20  rest 20  note C$4 20  rest 20  note G$4 20  rest 20
+  note C-4 20  rest 20  note G$4 20  rest 20  note C-4 20  rest 20  note C$4 20  note D-4 20
+  note D$4 20  rest 20  note G$4 20  rest 20  note D$4 20  rest 20  note G$4 20  rest 20
+  note D-4 20  rest 20  note G$4 20  rest 20  note D-4 20  rest 20  note G$4 20  rest 20
+  note C$4 20  rest 20  note G$4 20  rest 20  note C$4 20  rest 20  note G$4 20  rest 20
+  note B-4 20  rest 20  note A$4 20  rest 20  note G$4 20  rest 20  rest 20      rest 20
 
 # That's all folks!
