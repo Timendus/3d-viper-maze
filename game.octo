@@ -1249,7 +1249,7 @@
 # Convenience macros and constants
 
 :const numc14nodes 14
-:const numc23nodes 24
+:const numc23nodes 26
 :const numc14leafs 14
 :const numc23leafs 27
 
@@ -1306,11 +1306,11 @@
   coord  0 5  c2node 6   c2node 8   # node 5
   coord -1 4  c2leaf 2   c2node 7   # node 6
   coord -1 5  c2leaf 1   c2leaf 1   # node 7
-  coord -1 4  c2leaf 24  c2leaf 21  # node 8
+  coord -1 4  c2node 25  c2leaf 21  # node 8
   coord  0 3  c2node 10  c2leaf 10  # node 9
   coord -1 3  c2node 11  c2node 13  # node 10
   coord  0 4  c2node 12  c2node 21  # node 11
-  coord -1 5  c2leaf 5   c2leaf 4   # node 12
+  coord  0 5  c2node 24  c2leaf 22  # node 12
   coord  0 4  c2node 14  c2leaf 15  # node 13
   coord -1 4  c2node 15  c2node 16  # node 14
   coord  0 5  c2leaf 6   c2node 23  # node 15
@@ -1322,6 +1322,8 @@
   coord -1 4  c2node 22  c2leaf 17  # node 21
   coord -1 5  c2leaf 19  c2leaf 18  # node 22
   coord -1 5  c2leaf 25  c2leaf 23  # node 23
+  coord -1 5  c2leaf 5   c2leaf 4   # node 24
+  coord -1 5  c2leaf 26  c2leaf 24  # node 25
 
 : nodes-column-three
 #        X Y  no wall    wall
@@ -1333,11 +1335,11 @@
   coord  0 5  c3node 6   c3node 8   # node 5
   coord  1 4  c3leaf 2   c3node 7   # node 6
   coord  1 5  c3leaf 3   c3leaf 1   # node 7
-  coord  1 4  c3leaf 24  c3leaf 21  # node 8
+  coord  1 4  c3node 25  c3leaf 21  # node 8
   coord  0 3  c3node 10  c3leaf 10  # node 9
   coord  1 3  c3node 11  c3node 13  # node 10
   coord  0 4  c3node 12  c3node 21  # node 11
-  coord  1 5  c3leaf 5   c3leaf 4   # node 12
+  coord  0 5  c3node 24  c3leaf 22  # node 12
   coord  0 4  c3node 14  c3leaf 15  # node 13
   coord  1 4  c3node 15  c3node 16  # node 14
   coord  0 5  c3leaf 6   c3node 23  # node 15
@@ -1349,6 +1351,8 @@
   coord  1 4  c3node 22  c3leaf 17  # node 21
   coord  1 5  c3leaf 19  c3leaf 18  # node 22
   coord  1 5  c3leaf 25  c3leaf 23  # node 23
+  coord  1 5  c3leaf 5   c3leaf 4   # node 24
+  coord  1 5  c3leaf 26  c3leaf 24  # node 25
 
 : nodes-column-four
 #        X Y  no wall   wall
