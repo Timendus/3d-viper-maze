@@ -11,18 +11,29 @@
   mark-screen-clean
 : main-loop
   check-keys
+  play-music
   i := dirty    # Is the screen dirty?
   load v0
   if v0 == 1 then jump main-redraw
   jump main-loop
 
 #####################
+# Handle those things that need attention in parallel to gameplay,
+# like sound and enemy movement
+: clock-tick
+  play-music
+  return
+
+#####################
 # Render the map to the screen in pseudo-3D
 # (for the actual gameplay)
 : render-3d
   column-one
+  clock-tick
   column-two
+  clock-tick
   column-three
+  clock-tick
   column-four
   return
 
@@ -247,6 +258,7 @@
   # Fall through
 
 : wait-release
+  clock-tick
   v0 := OCTO_KEY_W
   if v0 key then jump wait-release
   v0 := OCTO_KEY_A
@@ -365,6 +377,41 @@
   load v0
   return
 
+#####################
+# Set the next buzzer for the next tone in the melody
+: play-music
+  # Is the last note finished?
+  v0 := delay
+  if v0 != 0 then return
+
+	# Load and update our position in the song
+	i := music-position
+	load v0
+	v1 := v0
+	v0 += 1
+  if v0 > 63 then v0 := 0 # Hardcoded progression of 64 steps for now
+	i := music-position
+	save v0
+
+	# Load the pointer to the right audio sample
+	i := long music-score
+	i += v1
+  i += v1
+  i += v1
+	load v2
+	i := play-music-smc
+	save v1
+  0xF0 0x00 # i := long ...
+: play-music-smc
+	0 0
+
+  # Play the sound!
+	audio
+	delay := v2
+	vf := 255
+	buzzer := vf
+	return
+
 
 #####################
 # Game state
@@ -375,6 +422,9 @@
   1 # orientation
 
 : dirty
+  0
+
+: music-position
   0
 
 : map
@@ -1070,3 +1120,46 @@
   pointer wall-1+48+0     # leaf 3
   pointer wall-1-1+48+0   # leaf 4
   pointer wall-1-2+48+0   # leaf 5
+
+#####################
+# Musical accompaniment
+
+# Convenience macros
+
+:macro note ADDRESS DURATION {
+  :byte { ADDRESS >> 8 }
+  :byte { ADDRESS }
+  :byte { DURATION }
+}
+
+:macro rest DURATION {
+  :byte { --- >> 8 }
+  :byte { --- }
+  :byte { DURATION }
+}
+
+# Available samples
+
+: B-4 0xF8 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x7C 0x3C 0x3C 0x3C 0x3C 0x3C # 494hz
+: A$4 0xF8 0x78 0x3C 0x3E 0x1E 0x1F 0x0F 0x07 0x87 0x83 0xC3 0xE1 0xE0 0xF0 0xF0 0x78 # 466hz
+: G$4 0xF8 0x3E 0x0F 0x87 0xC1 0xF0 0x7C 0x3E 0x0F 0x83 0xC1 0xF0 0x7C 0x1E 0x0F 0x83 # 415hz
+: D$4 0xFE 0x07 0xF0 0x3F 0x81 0xFC 0x0F 0xC0 0x7E 0x03 0xF0 0x1F 0x81 0xFC 0x0F 0xE0 # 311hz
+: D-4 0xFE 0x03 0xF8 0x0F 0xE0 0x7F 0x01 0xFC 0x07 0xF0 0x3F 0x80 0xFE 0x03 0xF8 0x1F # 293hz
+: C$4 0xFF 0x01 0xFC 0x07 0xF8 0x0F 0xE0 0x3F 0x80 0x7F 0x01 0xFC 0x03 0xF8 0x0F 0xE0 # 277hz
+: C-4 0xFF 0x00 0xFE 0x01 0xFE 0x03 0xFC 0x03 0xF8 0x07 0xF0 0x0F 0xF0 0x1F 0xE0 0x1F # 262hz
+: --- 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 # silence
+
+# Songs
+
+: music-score
+	note D$4 20  rest 20  note G$4 20  rest 20  note D$4 20  rest 20  note G$4 20  rest 20
+	note D-4 10  rest 10  note G$4 10  rest 10  note D-4 10  rest 10  note G$4 10  rest 10
+  note D-4 10  rest 10  note G$4 10  rest 10  note D-4 10  rest 10  note G$4 10  rest 10
+	note C$4 20  rest 20  note G$4 20  rest 20  note C$4 20  rest 20  note G$4 20  rest 20
+	note C-4 20  rest 20  note G$4 20  rest 20  note C-4 20  rest 20  note C$4 20  note D-4 20
+	note D$4 20  rest 20  note G$4 20  rest 20  note D$4 20  rest 20  note G$4 20  rest 20
+	note D-4 20  rest 20  note G$4 20  rest 20  note D-4 20  rest 20  note G$4 20  rest 20
+	note C$4 20  rest 20  note G$4 20  rest 20  note C$4 20  rest 20  note G$4 20  rest 20
+	note B-4 20  rest 20  note A$4 20  rest 20  note G$4 20  rest 20  rest 20      rest 20
+
+# That's all folks!
