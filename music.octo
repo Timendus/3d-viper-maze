@@ -2,6 +2,10 @@
   play-music
   jump main
 
+:const c-note    0
+:const c-repeat  1
+:const c-da-capo 2
+
 #####################
 # Set the next buzzer for the next tone in the melody
 : play-music
@@ -12,29 +16,57 @@
   # Load and update our position in the song
   i := music-position
   load v0
-  v1 := v0
+  v4 := v0
   v0 += 1
-  if v0 > 211 then v0 := 0 # Hardcoded progression of 64 steps for now
   i := music-position
   save v0
 
   # Load the pointer to the right audio sample
+  v4 <<= v4
+  v4 <<= v4
   i := long knee-deep-in-trouble
-  i += v1
-  i += v1
-  i += v1
-  load v2
-  i := play-music-smc
-  save v1
-  0xF0 0x00 # i := long ...
+  i += v4
+  load v3
+  if v2 == c-note begin
+    i := play-music-smc
+    save v1
+    0xF0 0x00 # i := long ...
 : play-music-smc
-  0 0
+    0 0
 
-  # Play the sound!
-  audio
-  delay := v2
-  vf := 255
-  buzzer := vf
+    # Play the sound!
+    audio
+    delay := v3
+    vf := 255
+    buzzer := vf
+  end
+  if v2 == c-repeat begin
+    v5 := v0
+    if v0 == 0 begin
+      v0 := v1
+      i := long knee-deep-in-trouble
+      i += v4
+      save v0
+    else
+      i := music-position
+      load v0
+      v1 := v0
+      v0 -= v3
+      i := music-position
+      save v0
+
+      v0 := v5
+      v0 -= 1
+      i := long knee-deep-in-trouble
+      i += v4
+      save v0
+    end
+  end
+  if v2 == c-da-capo begin
+    v0 := 0
+    i := music-position
+    save v0
+  end
   return
 
 : music-position
@@ -48,13 +80,29 @@
 :macro note ADDRESS DURATION {
   :byte { ADDRESS >> 8 }
   :byte { ADDRESS }
+  :byte c-note
   :byte { DURATION }
 }
 
 :macro rest DURATION {
   :byte { --- >> 8 }
   :byte { --- }
+  :byte c-note
   :byte { DURATION }
+}
+
+:macro repeat TIMES LABEL {
+  :byte { TIMES - 1 }
+  :byte { TIMES - 1 }
+  :byte c-repeat
+  :byte { ( ( HERE - LABEL ) / 4 ) + 1 }
+}
+
+:macro da-capo {
+  :byte 0
+  :byte 0
+  :byte c-da-capo
+  :byte 0
 }
 
 # Available samples
@@ -86,41 +134,44 @@
 # Songs
 
 : knee-deep-in-trouble
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10 # 8 entries,  24 bytes
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
+	note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10
+	repeat 4 knee-deep-in-trouble
 
-	note C-2 10 rest 10  note D$2 10 rest 10  note G-2 10 rest 10 note C-3 10 rest 10
-	note C-2 10 rest 10  note D$2 10 rest 10  note G-2 10 rest 10 note C-3 10 rest 10
-	note A$1 10 rest 10  note D-2 10 rest 10  note F-2 10 rest 10 note A$2 10 rest 10
-	note A$1 10 rest 10  note D-2 10 rest 10  note F-2 10 rest 10 note A$2 10 rest 10
+: knee-deep-in-trouble-part1
+  note C-2 10  rest 10  note D$2 10  rest 10  note G-2 10  rest 10  note C-3 10  rest 10
+	repeat 2 knee-deep-in-trouble-part1
+: knee-deep-in-trouble-part2
+  note A$1 10  rest 10  note D-2 10  rest 10  note F-2 10  rest 10  note A$2 10  rest 10
+	repeat 2 knee-deep-in-trouble-part2
 
+: knee-deep-in-trouble-part3
 	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
+	repeat 4 knee-deep-in-trouble-part3
 
-	note C-2 10 rest 10 note C-2 10 rest 10 rest 120 # 5 entries, 15 bytes
+: knee-deep-in-trouble-part4
 	note C-2 10 rest 10 note C-2 10 rest 10 rest 120
+	repeat 2 knee-deep-in-trouble-part4
 
+: knee-deep-in-trouble-part5
 	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
+	repeat 4 knee-deep-in-trouble-part5
 
+: knee-deep-in-trouble-part6
 	note C-3 10 rest 10  note G-2 10 rest 10  note D$2 10 rest 10 note C-2 10 rest 10
-	note C-3 10 rest 10  note G-2 10 rest 10  note D$2 10 rest 10 note C-2 10 rest 10
+	repeat 2 knee-deep-in-trouble-part6
+: knee-deep-in-trouble-part7
 	note A$2 10 rest 10  note F-2 10 rest 10  note D-2 10 rest 10 note A$1 10 rest 10
-	note A$2 10 rest 10  note F-2 10 rest 10  note D-2 10 rest 10 note A$1 10 rest 10
+	repeat 2 knee-deep-in-trouble-part7
 
+: knee-deep-in-trouble-part8
 	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
+  repeat 4 knee-deep-in-trouble-part8
 
+: knee-deep-in-trouble-part9
 	note C-2 10 rest 10 note C-2 10 rest 10 rest 120
-	note C-2 10 rest 10 note C-2 10 rest 10 rest 120
+	repeat 2 knee-deep-in-trouble-part9
+
+  da-capo
 
 
 # That's all folks!
