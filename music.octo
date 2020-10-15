@@ -1,16 +1,25 @@
 : main
-  play-music
-  jump main
+  :unpack 0 knee-deep-in-trouble
+  select-song
+  loop
+    play-music
+  again
+
+#####################
+# A non-blocking music player
+# `play-music` needs to be called at a reasonable frequency to keep the melody
+# going. Also, it hogs the buzzer and delay special registers. So if you need to
+# use those, stop calling this routine and reset the buzzer to zero.
 
 :const c-note    0
 :const c-repeat  1
 :const c-da-capo 2
 
-#####################
-# A non-blocking music player
-# Needs to be called at a reasonable frequency to keep the melody going
-# Also, it hogs the buzzer and delay special registers. So if you need to use
-# those, stop calling this routine and reset the buzzer to zero.
+: select-song
+  i := long current-song
+  save v1
+  return
+
 : play-music
   # Is the last note finished?
   v0 := delay
@@ -25,28 +34,24 @@
   save v0
 
   # Load the next music instruction
-  i := long knee-deep-in-trouble
-  i += v4
-  i += v4
-  i += v4
-  i += v4
+  music-pointer
   load v3
 
-  if v2 == c-note   then jump play-music-note
-  if v2 == c-repeat then jump play-music-repeat
+  if v2 == c-note   then jump music-note
+  if v2 == c-repeat then jump music-repeat
   # Else, it's a da capo
 
-: play-music-da-capo
+: music-da-capo
   v0 := 0
   i := music-position
   save v0
   return
 
-: play-music-note
-  i := play-music-smc
+: music-note
+  i := music-smc
   save v1
   0xF0 0x00 # i := long ...
-: play-music-smc
+: music-smc
   0 0
   # Play the sound!
   audio
@@ -55,18 +60,17 @@
   buzzer := vf
   return
 
-: play-music-repeat
-  i := long knee-deep-in-trouble
-  i += v4
-  i += v4
-  i += v4
-  i += v4
-  if v0 == 0 begin
+: music-repeat
+  v5 := v0
+  v6 := v1
+  music-pointer
+  if v5 == 0 begin
     # We've done all the repetitions, reset for the next playthrough
-    v0 := v1
+    v0 := v6
     save v0
   else
     # Decrease the loop counter
+    v0 := v5
     v0 -= 1
     save v0
 
@@ -79,6 +83,22 @@
   end
   jump play-music
 
+: music-pointer
+  i := long current-song
+  load v1
+  i := music-pointer-smc
+  save v1
+  0xF0 0x00
+: music-pointer-smc
+  0 0
+  i += v4
+  i += v4
+  i += v4
+  i += v4
+  return
+
+: current-song
+  0 0
 : music-position
   0
 
@@ -157,5 +177,10 @@
 : kdt9   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt9
 : kdt10  note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt10
          da-capo
+
+: vipers-theme
+
+  note D-4 10  rest 4  note G$4 4  rest 4  note B-4 20  rest 8
+  da-capo
 
 # That's all folks!
