@@ -334,6 +334,9 @@
   v0 := X
   v1 := Y
   map-get
+  v1 := 0b10000000
+  v1 &= v0
+  if v1 != 0 then v0 := 0
   # Get pointer to right sprite
   # Sprites are 8 bytes, so sprite = tiles + map value * 4
   i := top-down-tiles
