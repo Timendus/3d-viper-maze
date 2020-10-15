@@ -7,7 +7,10 @@
 :const c-da-capo 2
 
 #####################
-# Set the next buzzer for the next tone in the melody
+# A non-blocking music player
+# Needs to be called at a reasonable frequency to keep the melody going
+# Also, it hogs the buzzer and delay special registers. So if you need to use
+# those, stop calling this routine and reset the buzzer to zero.
 : play-music
   # Is the last note finished?
   v0 := delay
@@ -21,53 +24,60 @@
   i := music-position
   save v0
 
-  # Load the pointer to the right audio sample
-  v4 <<= v4
-  v4 <<= v4
+  # Load the next music instruction
   i := long knee-deep-in-trouble
   i += v4
+  i += v4
+  i += v4
+  i += v4
   load v3
-  if v2 == c-note begin
-    i := play-music-smc
-    save v1
-    0xF0 0x00 # i := long ...
+
+  if v2 == c-note   then jump play-music-note
+  if v2 == c-repeat then jump play-music-repeat
+  # Else, it's a da capo
+
+: play-music-da-capo
+  v0 := 0
+  i := music-position
+  save v0
+  return
+
+: play-music-note
+  i := play-music-smc
+  save v1
+  0xF0 0x00 # i := long ...
 : play-music-smc
-    0 0
+  0 0
+  # Play the sound!
+  audio
+  delay := v3
+  vf := 255
+  buzzer := vf
+  return
 
-    # Play the sound!
-    audio
-    delay := v3
-    vf := 255
-    buzzer := vf
-  end
-  if v2 == c-repeat begin
-    v5 := v0
-    if v0 == 0 begin
-      v0 := v1
-      i := long knee-deep-in-trouble
-      i += v4
-      save v0
-    else
-      i := music-position
-      load v0
-      v1 := v0
-      v0 -= v3
-      i := music-position
-      save v0
+: play-music-repeat
+  i := long knee-deep-in-trouble
+  i += v4
+  i += v4
+  i += v4
+  i += v4
+  if v0 == 0 begin
+    # We've done all the repetitions, reset for the next playthrough
+    v0 := v1
+    save v0
+  else
+    # Decrease the loop counter
+    v0 -= 1
+    save v0
 
-      v0 := v5
-      v0 -= 1
-      i := long knee-deep-in-trouble
-      i += v4
-      save v0
-    end
-  end
-  if v2 == c-da-capo begin
-    v0 := 0
+    # Move the position back as many steps as the instruction dictates
+    i := music-position
+    load v0
+    v0 -= v3
     i := music-position
     save v0
   end
-  return
+  jump play-music
 
 : music-position
   0
@@ -127,6 +137,7 @@
 : D-4 0xFE 0x03 0xF8 0x0F 0xE0 0x7F 0x01 0xFC 0x07 0xF0 0x3F 0x80 0xFE 0x03 0xF8 0x1F # 293hz
 : C$4 0xFF 0x01 0xFC 0x07 0xF8 0x0F 0xE0 0x3F 0x80 0x7F 0x01 0xFC 0x03 0xF8 0x0F 0xE0 # 277hz
 : C-4 0xFF 0x00 0xFE 0x01 0xFE 0x03 0xFC 0x03 0xF8 0x07 0xF0 0x0F 0xF0 0x1F 0xE0 0x1F # 262hz
+
 : --- 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 # silence
 
 : click 0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
@@ -134,44 +145,17 @@
 # Songs
 
 : knee-deep-in-trouble
-	note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10
-	repeat 4 knee-deep-in-trouble
 
-: knee-deep-in-trouble-part1
-  note C-2 10  rest 10  note D$2 10  rest 10  note G-2 10  rest 10  note C-3 10  rest 10
-	repeat 2 knee-deep-in-trouble-part1
-: knee-deep-in-trouble-part2
-  note A$1 10  rest 10  note D-2 10  rest 10  note F-2 10  rest 10  note A$2 10  rest 10
-	repeat 2 knee-deep-in-trouble-part2
-
-: knee-deep-in-trouble-part3
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	repeat 4 knee-deep-in-trouble-part3
-
-: knee-deep-in-trouble-part4
-	note C-2 10 rest 10 note C-2 10 rest 10 rest 120
-	repeat 2 knee-deep-in-trouble-part4
-
-: knee-deep-in-trouble-part5
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-	repeat 4 knee-deep-in-trouble-part5
-
-: knee-deep-in-trouble-part6
-	note C-3 10 rest 10  note G-2 10 rest 10  note D$2 10 rest 10 note C-2 10 rest 10
-	repeat 2 knee-deep-in-trouble-part6
-: knee-deep-in-trouble-part7
-	note A$2 10 rest 10  note F-2 10 rest 10  note D-2 10 rest 10 note A$1 10 rest 10
-	repeat 2 knee-deep-in-trouble-part7
-
-: knee-deep-in-trouble-part8
-	note C-2 10 rest 10  note G-2 10 rest 10  note A$1 10 rest 10 note F-2 10 rest 10
-  repeat 4 knee-deep-in-trouble-part8
-
-: knee-deep-in-trouble-part9
-	note C-2 10 rest 10 note C-2 10 rest 10 rest 120
-	repeat 2 knee-deep-in-trouble-part9
-
-  da-capo
-
+: kdt1   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt1
+: kdt2   note C-2 10  rest 10  note D$2 10  rest 10  note G-2 10  rest 10  note C-3 10  rest 10  repeat 2 kdt2
+: kdt3   note A$1 10  rest 10  note D-2 10  rest 10  note F-2 10  rest 10  note A$2 10  rest 10  repeat 2 kdt3
+: kdt4   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt4
+: kdt5   note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt5
+: kdt6   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt6
+: kdt7   note C-3 10  rest 10  note G-2 10  rest 10  note D$2 10  rest 10  note C-2 10  rest 10  repeat 2 kdt7
+: kdt8   note A$2 10  rest 10  note F-2 10  rest 10  note D-2 10  rest 10  note A$1 10  rest 10  repeat 2 kdt8
+: kdt9   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt9
+: kdt10  note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt10
+         da-capo
 
 # That's all folks!
