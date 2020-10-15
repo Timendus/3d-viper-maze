@@ -264,6 +264,7 @@
   v1 := v3
   i := player
   save v1
+  check-triggers
   mark-screen-dirty
   # Fall through
 
@@ -278,6 +279,12 @@
   v0 := OCTO_KEY_D
   if v0 key then jump wait-release
   return
+
+: check-triggers
+  if v0 != 3 then return
+  if v1 != 1 then return
+  :unpack 0 vipers-theme
+  jump interject-song
 
 #####################
 # Show the map on screen (top down) with a blinking player position
@@ -398,6 +405,7 @@
 :const c-note    0
 :const c-repeat  1
 :const c-da-capo 2
+:const c-stop    3
 
 : play-click
   i := long click
@@ -406,9 +414,32 @@
   buzzer := v0
   return
 
-: select-song
-  i := long current-song
-  save v1
+: select-song # and return to position 0
+  i := current-song
+  v2 := 0
+  save v2
+  return
+
+: interject-song # and resume playing afterwards
+  v3 := v0
+  v4 := v1
+  # Check if we're already in an interjected song (can't do two)
+  i := current-song-backup
+  load v1
+  v0 &= v1
+  if v0 != 0 then return
+  # Swap current song to backup and new song to current
+  i := current-song
+  load v2
+  i := current-song-backup
+  save v2
+  v0 := v3
+  v1 := v4
+  v2 := 0
+  i := current-song
+  save v2
+  # Force `play-music` to start the new song right away
+  delay := v2
   return
 
 : play-music
@@ -430,6 +461,7 @@
 
   if v2 == c-note   then jump music-note
   if v2 == c-repeat then jump music-repeat
+  if v2 == c-stop   then jump music-stop
   # Else, it's a da capo
 
 : music-da-capo
@@ -474,8 +506,32 @@
   end
   jump play-music
 
+: music-stop
+  # Do we have anything left in backup to play?
+  i := current-song-backup
+  load v2
+  v3 := v0
+  v3 &= v1
+  if v3 != 0 begin
+    i := current-song
+    save v2
+    v0 := 0
+    v1 := 0
+    i := current-song-backup
+    save v1
+    return
+  else
+    # Step back one position so we don't play anything anymore
+    i := music-position
+    load v0
+    v0 -= 1
+    i := music-position
+    save v0
+  end
+  return
+
 : music-pointer
-  i := long current-song
+  i := current-song
   load v1
   i := music-pointer-smc
   save v1
@@ -518,6 +574,13 @@
   :byte 0
   :byte 0
   :byte c-da-capo
+  :byte 0
+}
+
+:macro stop {
+  :byte 0
+  :byte 0
+  :byte c-stop
   :byte 0
 }
 
@@ -567,7 +630,7 @@
 : vipers-theme
 
   note D-4 10  rest 4  note G$4 4  rest 4  note B-4 20  rest 8
-  da-capo
+  stop
 
 #####################
 # Game state
@@ -583,6 +646,10 @@
 : current-song
   0 0
 : music-position
+  0
+: current-song-backup
+  0 0
+: music-position-backup
   0
 
 : map
