@@ -35,7 +35,7 @@
   # Check if we're already in an interjected song (can't do two)
   i := current-song-backup
   load v1
-  v0 &= v1
+  v0 |= v1
   if v0 != 0 then return
   # Swap current song to backup and new song to current
   i := current-song
