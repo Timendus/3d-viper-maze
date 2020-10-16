@@ -12,7 +12,7 @@
   plane 3
 
   # Start with training map
-  :unpack 0 map1
+  :unpack 0 training1
   select-map
   jump start-map
 
@@ -649,9 +649,11 @@
 # Input: Address of map 'unpacked' in v0 and v1
 : select-map
   # Make new map the current map
-  i := current-map
+  i := long current-map
   save v1
-  # Find the start position in this map
+  # Fall through
+
+: put-player-at-start-position
   v4 := 0
   v5 := 0
 : select-map-loop
@@ -666,7 +668,7 @@
   jump select-map-loop
 : select-map-start-found
   # Put the player in the start position (direction is fixed)
-  i := player
+  i := long player
   v0 := v4
   v1 := v5
   v2 := 1
@@ -681,6 +683,37 @@
   select-song
   # Start the game!
   jump main-redraw
+
+: death-by-snake-animation
+  # TODO: animate snake ;)
+  play-click
+  v0 := 10
+  loop
+    scroll-up 1
+    v1 := 10
+    delay := v1
+    loop
+      v1 := delay
+      while v1 != 0
+    again
+    v0 -= 1
+    while v0 != 0
+  again
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  clear
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  put-player-at-start-position
+  return
 
 #####################
 # Musical accompaniment
@@ -816,53 +849,18 @@
   save v0
 }
 
-: button1
+: map1-button1
   open-wall 4 3
   make-visible 2 6
   :unpack 0 victory-2
   jump interject-song
 
-: snake1
+: map1-snake1
   make-visible 5 4
-  play-click
-  # Snake animation here
-  play-click
-  v0 := 10
-  loop
-    scroll-up 1
-    v1 := 10
-    delay := v1
-    loop
-      v1 := delay
-      while v1 != 0
-    again
-    v0 -= 1
-    while v0 != 0
-  again
-  v1 := 50
-  delay := v1
-  loop
-    v1 := delay
-    while v1 != 0
-  again
-  clear
-  v1 := 50
-  delay := v1
-  loop
-    v1 := delay
-    while v1 != 0
-  again
-  i := player
-  v0 := 1
-  v1 := 1
-  v2 := 1
-  save v2
-  i := music-position
-  v0 := 0
-  save v0
-  return
+  death-by-snake-animation
+  jump start-map
 
-: finish1
+: finish-map1
   #:unpack 0 victory-1
   #sjump interject-song
   :unpack 0 map2
@@ -890,6 +888,11 @@
   :unpack 0 map1
   select-map
   jump start-map
+
+: map2-button1
+  make-visible 3 1
+  :unpack 0 victory-2
+  jump interject-song
 
 #####################
 # Level definitions
@@ -943,13 +946,13 @@
   pointer knee-deep-in-trouble
 
   # Triggers
-  pointer button1  # trigger 1
-  pointer snake1   # trigger 2
-  pointer finish1  # trigger 3
+  pointer map1-button1  # trigger 1
+  pointer map1-snake1   # trigger 2
+  pointer finish-map1   # trigger 3
 
 : map2
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x02 0x00 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x00 0x01
+  0x01 0x02 0x00 0x1C 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x00 0x01
   0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x01 0x00 0x01 0x01
   0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x01
   0x01 0x01 0x00 0x01 0x01 0x81 0x00 0x01 0x01 0x01 0x00 0x01 0x01 0x00 0x00 0x01
@@ -960,14 +963,17 @@
   # Soundtrack
   pointer knee-deep-in-trouble
 
+  # Triggers
+  pointer map2-button1
+
 
 #####################
 # Game state
 
 : player
-  1 1 # X, Y
+  0 0 # X, Y
 : player-orientation
-  1 # orientation
+  0 # orientation
 
 : dirty
   0
@@ -982,7 +988,7 @@
   0
 
 : current-map
-  pointer map1
+  0 0
 
 #####################
 # Tiles for the mini-map
