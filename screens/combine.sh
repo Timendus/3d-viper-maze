@@ -53,3 +53,6 @@ sed -n 9,25p wall-5-5-3.txt >> screens.txt
 sed -n 9,25p wall-5-5.txt >> screens.txt
 sed -n 9,25p wall-5-6.txt >> screens.txt
 sed -n 9,25p wall-5-6-3.txt >> screens.txt
+
+# Sprites
+sed -n 1,21p sprites.txt >> screens.txt
