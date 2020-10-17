@@ -7,6 +7,14 @@
 # main
   lores
   plane 3
+
+  # Prepare virtual timers
+  music-delay := 1
+  text-delay := 1
+  v0 := 1
+  delay := v0
+
+  # Welcome the user!
   title-screen
 
   # Start with training map
@@ -27,9 +35,17 @@
   jump main-loop
 
 # Handle those things that need attention in parallel to gameplay,
-# like sound and enemy movement
+# like sound and enemy movement. A virtual timer implementation in the upper
+# registers.
 : clock-tick
-  play-music
+  v0 := delay
+  if v0 != 0 then return
+  music-delay -= 1
+  text-delay -= 1
+  if music-delay == 0 then play-music
+  if text-delay == 0 then show-text
+  v0 := 1
+  delay := v0
   return
 
 # Mark the screen dirty or clean to manage redraws
@@ -86,11 +102,18 @@
   # Render this image
   i := long title-screen+0+0
   bitmap-to-screen
+  # Blink text
+  unpack-long string-press-any-key
+  select-text
+  set-text-visible
   # And wait for a key press
   wait-key-release
-  jump wait-key-press
+  wait-key-press
+  set-text-invisible
+  jump wait-key-release
 
 : map-victory-screen
+  set-text-invisible
   # Select background music
   unpack-long knee-deep-in-trouble
   select-song
@@ -100,9 +123,15 @@
   # Render this image
   i := long map-victory+0+0
   bitmap-to-screen
+  # Blink text
+  unpack-long string-press-any-key
+  select-text
+  set-text-visible
   # And wait for a key press
   wait-key-release
-  jump wait-key-press
+  wait-key-press
+  set-text-invisible
+  jump wait-key-release
 
 : bitmap-to-screen
   clear

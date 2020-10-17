@@ -5,5 +5,5 @@
   :byte { VALUE }
 }
 
-: string-hello-world
-  ascii "Hello world" 0
+: string-press-any-key
+  ascii "Press a key..." 0

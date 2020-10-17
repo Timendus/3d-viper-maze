@@ -145,7 +145,7 @@
 : wait-key-press
   v5 := 0
 : wait-key-press-loop
-  play-music
+  clock-tick
   if v5 key then return
   v5 += 1
   if v5 != 16 then jump wait-key-press-loop

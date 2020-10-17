@@ -1,8 +1,6 @@
 #####################
 # A non-blocking music player
-# `play-music` needs to be called at a reasonable frequency to keep the melody
-# going. Also, it hogs the buzzer and delay special registers. So if you need to
-# use those, stop calling this routine and reset the buzzer to zero.
+# `play-music` needs to be called again after 'music-delay' timer ticks.
 
 # Input: none
 : play-click
@@ -45,16 +43,12 @@
   i := long current-song
   save v2
   # Force `play-music` to start the new song right away
-  delay := v2
+  music-delay := 1
   return
 
 # Input: none
 # Destroys: v0 - v4
 : play-music
-  # Is the last note finished?
-  v0 := delay
-  if v0 != 0 then return
-
   # Load and update our position in the song
   i := long music-position
   load v0
@@ -86,7 +80,7 @@
   0 0
   # Play the sound!
   audio
-  delay := v3
+  music-delay := v3
   vf := 255
   buzzer := vf
   return
@@ -127,6 +121,7 @@
     v1 := 0
     i := long current-song-backup
     save v1
+    music-delay := 1
     return
   else
     # Step back one position so we don't play anything anymore

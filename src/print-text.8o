@@ -2,26 +2,45 @@
 # Text rendering routines
 # This needs a bit of work...
 
-: print-hello-world
-  plane 1
-  v1 := 0
-: print-hello-world-loop
-  i := long string-hello-world
-  draw-next-char
-  if v0 != 0 then jump print-hello-world-loop
-  plane 3
+: select-text
+  i := long current-text
+  save v1
   return
 
-#: print-text2
-#  plane 1
-#  v1 := 0
-#: print-text2-loop
-#  i := long text2
-#  draw-next-char
-#  if v0 != 0 then jump print-text2-loop
-#  plane 3
-#  return
+: set-text-visible
+  text-delay := 1
+  v0 := 1
+  jump set-text-visibility
+: set-text-invisible
+  v0 := 0
+: set-text-visibility
+  i := long text-visible
+  save v0
+  return
 
+: show-text
+  i := long text-visible
+  load v0
+  if v0 == 0 then return
+  plane 1
+  v2 := 0
+  v3 := 15 # X
+  v4 := 26 # Y
+: show-text-loop
+  i := long current-text
+  load v1
+  i := show-text-smc
+  save v1
+  0xF0 0x00  # i := long ...
+: show-text-smc
+  0 0
+  v1 := v2
+  draw-next-char
+  v2 += 1
+  if v0 != 0 then jump show-text-loop
+  plane 3
+  text-delay := 100
+  return
 
 : draw-next-char
   i += v1
@@ -32,8 +51,7 @@
   i += v0
   i += v0
   i += v0
-  load v0
+  load v0   # WARNING: this affects i in unpredictable ways!
   sprite v3 v4 5
   v3 += v0
-  v1 += 1
   return
