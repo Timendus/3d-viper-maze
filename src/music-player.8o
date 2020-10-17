@@ -124,7 +124,7 @@
   i := long current-song-backup
   load v2
   v3 := v0
-  v3 &= v1
+  v3 |= v1
   if v3 != 0 begin
     i := long current-song
     save v2
