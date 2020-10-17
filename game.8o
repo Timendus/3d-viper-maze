@@ -125,6 +125,120 @@
   if v0 != 64 then jump bitmap-to-screen-loop
   return
 #####################
+# Look at place (v3 - 1, v4) relative to the player
+# Return value at that position in v0
+: look-ahead
+  i := player
+  load v2
+  if v2 == 0 then jump look-ahead-up
+  if v2 == 1 then jump look-ahead-right
+  if v2 == 2 then jump look-ahead-down
+  # Else fall through
+: look-ahead-left
+  v0 -= v4
+  v1 += 1
+  v1 -= v3
+  jump map-get
+: look-ahead-right
+  v0 += v4
+  v1 -= 1
+  v1 += v3
+  jump map-get
+: look-ahead-up
+  v0 -= 1
+  v0 += v3
+  v1 -= v4
+  jump map-get
+: look-ahead-down
+  v0 += 1
+  v0 -= v3
+  v1 += v4
+  jump map-get
+
+#####################
+# Query the map for the value at a given position
+# Input: X in v0, Y in v1 (destructive)
+# Output: map value in v0
+: map-get
+  map-point
+  load v0
+  return
+
+# Input: X in v0, Y in v1 (destructive)
+# Output: i points to right place on map
+# Destroys v0, v1, v2, v3
+: map-point
+  v2 := v0
+  v3 := v1
+  map-start
+  i += v2
+  v3 <<= v3
+  v3 <<= v3
+  v3 <<= v3
+  v3 <<= v3
+  i += v3
+  return
+
+# Destroys v0, v1
+: map-start
+  i := current-map
+  load v1
+  i := map-point-smc
+  save v1
+  0xF0 0x00 # i := long ...
+  : map-point-smc
+  0 0
+  return
+
+# Destroys v0, v1
+: map-metadata-start
+  map-start
+  v0 := 128
+  i += v0
+  return
+
+#####################
+# Map switching routines
+# `select-map` loads the right map and player position
+# `start-map` starts the matching soundtrack
+
+# Input: Address of map 'unpacked' in v0 and v1
+: select-map
+  # Make new map the current map
+  i := long current-map
+  save v1
+  # Fall through
+
+: send-player-back-to-start
+  v4 := 0
+  v5 := 0
+: select-map-loop
+  v0 := v4
+  v1 := v5
+  map-get
+  if v0 == 0x02 then jump select-map-start-found
+  v4 += 1
+  if v4 != 7 then jump select-map-loop
+  v4 := 0
+  v5 += 1
+  jump select-map-loop
+: select-map-start-found
+  # Put the player in the start position (direction is fixed)
+  i := long player
+  v0 := v4
+  v1 := v5
+  v2 := 1
+  save v2
+  return
+
+# Input: none
+: start-map
+  # Load the map's soundtrack from the meta-data and select it
+  map-metadata-start
+  load v1
+  select-song
+  return
+#####################
 # Render the map to the screen in pseudo-3D
 # (for the actual gameplay)
 : render-3d
@@ -261,120 +375,6 @@
     i += v0
     jump find-sprite
   end
-#####################
-# Look at place (v3 - 1, v4) relative to the player
-# Return value at that position in v0
-: look-ahead
-  i := player
-  load v2
-  if v2 == 0 then jump look-ahead-up
-  if v2 == 1 then jump look-ahead-right
-  if v2 == 2 then jump look-ahead-down
-  # Else fall through
-: look-ahead-left
-  v0 -= v4
-  v1 += 1
-  v1 -= v3
-  jump map-get
-: look-ahead-right
-  v0 += v4
-  v1 -= 1
-  v1 += v3
-  jump map-get
-: look-ahead-up
-  v0 -= 1
-  v0 += v3
-  v1 -= v4
-  jump map-get
-: look-ahead-down
-  v0 += 1
-  v0 -= v3
-  v1 += v4
-  jump map-get
-
-#####################
-# Query the map for the value at a given position
-# Input: X in v0, Y in v1 (destructive)
-# Output: map value in v0
-: map-get
-  map-point
-  load v0
-  return
-
-# Input: X in v0, Y in v1 (destructive)
-# Output: i points to right place on map
-# Destroys v0, v1, v2, v3
-: map-point
-  v2 := v0
-  v3 := v1
-  map-start
-  i += v2
-  v3 <<= v3
-  v3 <<= v3
-  v3 <<= v3
-  v3 <<= v3
-  i += v3
-  return
-
-# Destroys v0, v1
-: map-start
-  i := current-map
-  load v1
-  i := map-point-smc
-  save v1
-  0xF0 0x00 # i := long ...
-  : map-point-smc
-  0 0
-  return
-
-# Destroys v0, v1
-: map-metadata-start
-  map-start
-  v0 := 128
-  i += v0
-  return
-
-#####################
-# Map switching routines
-# `select-map` loads the right map and player position
-# `start-map` starts the matching soundtrack
-
-# Input: Address of map 'unpacked' in v0 and v1
-: select-map
-  # Make new map the current map
-  i := long current-map
-  save v1
-  # Fall through
-
-: send-player-back-to-start
-  v4 := 0
-  v5 := 0
-: select-map-loop
-  v0 := v4
-  v1 := v5
-  map-get
-  if v0 == 0x02 then jump select-map-start-found
-  v4 += 1
-  if v4 != 7 then jump select-map-loop
-  v4 := 0
-  v5 += 1
-  jump select-map-loop
-: select-map-start-found
-  # Put the player in the start position (direction is fixed)
-  i := long player
-  v0 := v4
-  v1 := v5
-  v2 := 1
-  save v2
-  return
-
-# Input: none
-: start-map
-  # Load the map's soundtrack from the meta-data and select it
-  map-metadata-start
-  load v1
-  select-song
-  return
 #####################
 # Show the map on screen (top down) with a blinking player position
 # (as an in-game help and for debugging)
@@ -943,7 +943,6 @@
   make-visible 3 1
   :unpack 0 victory-2
   jump interject-song
-
 #####################
 # Level definitions
 # First nibble is a trigger (or zero for no trigger)
