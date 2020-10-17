@@ -14,7 +14,7 @@
   # Start with training map
   :unpack 0 training1
   select-map
-  jump start-map
+  start-map
 
 : main-redraw
   clear
@@ -650,7 +650,7 @@
 #####################
 # Map switching routines
 # `select-map` loads the right map and player position
-# `start-map` starts the matching soundtrack and puts the player in the game
+# `start-map` starts the matching soundtrack
 
 # Input: Address of map 'unpacked' in v0 and v1
 : select-map
@@ -659,7 +659,7 @@
   save v1
   # Fall through
 
-: put-player-at-start-position
+: send-player-back-to-start
   v4 := 0
   v5 := 0
 : select-map-loop
@@ -687,8 +687,7 @@
   map-metadata-start
   load v1
   select-song
-  # Start the game!
-  jump main-redraw
+  return
 
 : death-by-snake-animation
   # TODO: animate snake ;)
@@ -718,7 +717,6 @@
     v1 := delay
     while v1 != 0
   again
-  put-player-at-start-position
   return
 
 #####################
@@ -864,6 +862,7 @@
 : map1-snake1
   make-visible 5 4
   death-by-snake-animation
+  send-player-back-to-start
   jump start-map
 
 : finish-map1
