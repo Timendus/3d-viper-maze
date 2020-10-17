@@ -50,6 +50,7 @@
 : foreground
   v4 := 1
   foreground-look
+  if v0 == 1 then return # We can't see through walls
   if v0 == 3 then jump finish-near
   if v0 == 4 then jump button-near
   if v0 == 5 then jump viper-near
