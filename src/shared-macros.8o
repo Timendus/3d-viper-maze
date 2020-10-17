@@ -1,0 +1,11 @@
+:macro pointer ADDRESS {
+  :byte { ADDRESS >> 8 }
+  :byte { ADDRESS }
+}
+
+:macro unpack-long ADDR {
+  :calc hi { 0xFF & ADDR >> 8 }
+  :calc lo { 0xFF & ADDR }
+  v0 := hi
+  v1 := lo
+}

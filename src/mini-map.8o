@@ -36,7 +36,7 @@
   v0 &= v1
   # Get pointer to right sprite
   # Sprites are 8 bytes, so sprite = tiles + map value * 4
-  i := top-down-tiles
+  i := long top-down-tiles
   v0 <<= v0
   v0 <<= v0
   v0 <<= v0
@@ -61,7 +61,7 @@
 
 : render-player
   # Get player properties
-  i := player
+  i := long player
   load v2
   # Get coordinates in display space (x4)
   v0 <<= v0
@@ -69,7 +69,7 @@
   v1 <<= v1
   v1 <<= v1
   # Get pointer to right sprite (direction x 8)
-  i := player-tile
+  i := long player-tile
   v2 <<= v2
   v2 <<= v2
   v2 <<= v2

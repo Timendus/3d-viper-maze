@@ -4,11 +4,6 @@
 # going. Also, it hogs the buzzer and delay special registers. So if you need to
 # use those, stop calling this routine and reset the buzzer to zero.
 
-:const c-note    0
-:const c-repeat  1
-:const c-da-capo 2
-:const c-stop    3
-
 # Input: none
 : play-click
   i := long click

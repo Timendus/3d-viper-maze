@@ -4,12 +4,7 @@
 # By Timendus
 # https://github.com/Timendus/3d-viper-maze
 
-:macro pointer ADDRESS {
-  :byte { ADDRESS >> 8 }
-  :byte { ADDRESS }
-}
-
-: main
+# main
   lores
   plane 3
   title-screen
@@ -26,7 +21,7 @@
 : main-loop
   check-keys
   clock-tick
-  i := dirty    # Is the screen dirty?
+  i := long dirty    # Is the screen dirty?
   load v0
   if v0 == 1 then jump main-redraw
   jump main-loop
@@ -40,13 +35,13 @@
 # Mark the screen dirty or clean to manage redraws
 
 : mark-screen-dirty
-  i := dirty
+  i := long dirty
   v0 := 1
   save v0
   return
 
 : mark-screen-clean
-  i := dirty
+  i := long dirty
   v0 := 0
   save v0
   return
@@ -86,7 +81,7 @@
 
 : title-screen
   # Select background music
-  :unpack 0 knee-deep-in-trouble
+  unpack-long knee-deep-in-trouble
   select-song
   # Render this image
   i := long title-screen+0+0
@@ -97,10 +92,10 @@
 
 : map-victory-screen
   # Select background music
-  :unpack 0 knee-deep-in-trouble
+  unpack-long knee-deep-in-trouble
   select-song
   # Select immediate sound effect
-  :unpack 0 victory-1
+  unpack-long victory-1
   interject-song
   # Render this image
   i := long map-victory+0+0

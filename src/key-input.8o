@@ -3,7 +3,7 @@
 # Updates the player data on input, checks for collisions
 # Destroys v0 - v3
 : check-keys
-  i := player
+  i := long player
   load v2
 
   # Show mini map
@@ -51,7 +51,7 @@
   v0 := 3
   v2 -= 1
   v0 &= v2
-  i := player-orientation
+  i := long player-orientation
   save v0
   mark-screen-dirty
   jump wait-key-release
@@ -59,33 +59,33 @@
   v0 := 3
   v2 += 1
   v0 &= v2
-  i := player-orientation
+  i := long player-orientation
   save v0
   mark-screen-dirty
   jump wait-key-release
 : move-right
-  i := player
+  i := long player
   load v1
   v2 := 15
   v0 += 1
   v0 &= v2
   jump collide-or-save
 : move-left
-  i := player
+  i := long player
   load v1
   v2 := 15
   v0 -= 1
   v0 &= v2
   jump collide-or-save
 : move-up
-  i := player
+  i := long player
   load v1
   v2 := 7
   v1 -= 1
   v1 &= v2
   jump collide-or-save
 : move-down
-  i := player
+  i := long player
   load v1
   v2 := 7
   v1 += 1
@@ -103,7 +103,7 @@
   v1 := v5
   v3 := v0 # save v0 for check-triggers
   v0 := v4
-  i := player
+  i := long player
   save v1
   check-triggers
   mark-screen-dirty

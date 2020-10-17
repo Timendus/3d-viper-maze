@@ -2,7 +2,7 @@
 # Look at place (v3 - 1, v4) relative to the player
 # Return value at that position in v0
 : look-ahead
-  i := player
+  i := long player
   load v2
   if v2 == 0 then jump look-ahead-up
   if v2 == 1 then jump look-ahead-right
@@ -55,7 +55,7 @@
 
 # Destroys v0, v1
 : map-start
-  i := current-map
+  i := long current-map
   load v1
   i := map-point-smc
   save v1

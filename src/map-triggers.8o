@@ -33,7 +33,7 @@
 : map1-button1
   open-wall 4 3
   make-visible 2 6
-  :unpack 0 victory-2
+  unpack-long victory-2
   jump interject-song
 
 : map1-snake1
@@ -57,7 +57,7 @@
 : training2-button1
   open-wall 9 4
   make-visible 7 6
-  :unpack 0 victory-2
+  unpack-long victory-2
   jump interject-song
 
 : finish-training2
@@ -68,5 +68,5 @@
 
 : map2-button1
   make-visible 3 1
-  :unpack 0 victory-2
+  unpack-long victory-2
   jump interject-song

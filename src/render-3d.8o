@@ -122,10 +122,10 @@
     load v1
     # We now have the address of the leaf image in v0 and v1
     # Use self-modifying code trick to (long) load this address in `i`:
-    i := walk-set-i
+    i := find-sprite-smc
     save v1
     0xF0 0x00 # i := long ...
-: walk-set-i
+: find-sprite-smc
     0 0
     return
   else

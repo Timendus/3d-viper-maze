@@ -1,6 +1,11 @@
 #####################
 # Musical accompaniment
 
+:const c-note    0
+:const c-repeat  1
+:const c-da-capo 2
+:const c-stop    3
+
 # Convenience macros
 
 :macro note ADDRESS DURATION {
