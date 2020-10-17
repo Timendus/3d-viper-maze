@@ -1,0 +1,152 @@
+#####################
+# Non-blocking key input check
+# Updates the player data on input, checks for collisions
+# Destroys v0 - v3
+: check-keys
+  i := player
+  load v2
+
+  # Show mini map
+  v0 := OCTO_KEY_Q
+  if v0 key then jump mini-map
+
+  # Rotation
+  v0 := OCTO_KEY_A
+  if v0 key then jump rotate-left
+  v0 := OCTO_KEY_D
+  if v0 key then jump rotate-right
+
+  # Movement
+  if v2 == 0 then jump going-up
+  if v2 == 1 then jump going-right
+  if v2 == 2 then jump going-down
+  # Else fall through:
+
+: going-left
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-left
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-right
+  return
+: going-up
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-up
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-down
+  return
+: going-right
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-right
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-left
+  return
+: going-down
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-down
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-up
+  return
+
+: rotate-left
+  v0 := 3
+  v2 -= 1
+  v0 &= v2
+  i := player-orientation
+  save v0
+  mark-screen-dirty
+  jump wait-key-release
+: rotate-right
+  v0 := 3
+  v2 += 1
+  v0 &= v2
+  i := player-orientation
+  save v0
+  mark-screen-dirty
+  jump wait-key-release
+: move-right
+  i := player
+  load v1
+  v2 := 15
+  v0 += 1
+  v0 &= v2
+  jump collide-or-save
+: move-left
+  i := player
+  load v1
+  v2 := 15
+  v0 -= 1
+  v0 &= v2
+  jump collide-or-save
+: move-up
+  i := player
+  load v1
+  v2 := 7
+  v1 -= 1
+  v1 &= v2
+  jump collide-or-save
+: move-down
+  i := player
+  load v1
+  v2 := 7
+  v1 += 1
+  v1 &= v2
+  # Fall through
+
+: collide-or-save
+  # Backup position
+  v4 := v0
+  v5 := v1
+  # Is there a wall at this position?
+  map-get
+  if v0 == 1 then jump wait-key-release
+  # Otherwise, update position
+  v1 := v5
+  v3 := v0 # save v0 for check-triggers
+  v0 := v4
+  i := player
+  save v1
+  check-triggers
+  mark-screen-dirty
+  # Fall through
+
+: wait-key-release
+  clock-tick
+  v0 := OCTO_KEY_W
+  if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_A
+  if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_S
+  if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_D
+  if v0 key then jump wait-key-release
+  return
+
+: check-triggers
+  # Did we hit a trigger tile?
+  v0 := 0xF0
+  v3 &= v0
+  if v3 == 0 then return
+  v3 >>= v3
+  v3 >>= v3
+  v3 >>= v3
+  map-metadata-start
+  i += v3
+  load v1
+  i := check-triggers-smc
+  v2 := 0x10
+  v0 |= v2
+  save v1
+: check-triggers-smc
+  0 0
+
+# Blocking "press any key" routine
+# (does play music though)
+# Returns pressed key in v5
+: wait-key-press
+  v5 := 0
+: wait-key-press-loop
+  play-music
+  if v5 key then return
+  v5 += 1
+  if v5 != 16 then jump wait-key-press-loop
+  jump wait-key-press

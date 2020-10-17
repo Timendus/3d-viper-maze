@@ -1,0 +1,86 @@
+#####################
+# Show the map on screen (top down) with a blinking player position
+# (as an in-game help and for debugging)
+# Pressing Q exits the mini map and returns to normal gameplay
+: mini-map
+  clear
+  play-click
+  render-map
+: mini-map-loop
+  render-player
+  v0 := 20
+  delay := v0
+: mini-map-delay-loop
+  v0 := OCTO_KEY_Q
+  if v0 key then jump exit-from-map
+  v0 := delay
+  if v0 == 0 then jump mini-map-loop
+  jump mini-map-delay-loop
+
+: render-map
+  :alias X v6
+  :alias Y v7
+  X := 0
+  Y := 0
+: render-map-loop
+  # Look up value at X,Y
+  v0 := X
+  v1 := Y
+  map-get
+  # Don't show tile if its still hidden
+  v1 := 0b00001000
+  v1 &= v0
+  if v1 != 0 then v0 := 0
+  # Mask out three relevant bits
+  v1 := 0x07
+  v0 &= v1
+  # Get pointer to right sprite
+  # Sprites are 8 bytes, so sprite = tiles + map value * 4
+  i := top-down-tiles
+  v0 <<= v0
+  v0 <<= v0
+  v0 <<= v0
+  i += v0
+  # Get coordinates in display space (x4)
+  v4 := X
+  v4 <<= v4
+  v4 <<= v4
+  v5 := Y
+  v5 <<= v5
+  v5 <<= v5
+  # Render
+  sprite v4 v5 4
+  X += 1
+  if X < 16 then jump render-map-loop
+  # Next row
+  X := 0
+  Y += 1
+  if Y < 8 then jump render-map-loop
+  # Done
+  return
+
+: render-player
+  # Get player properties
+  i := player
+  load v2
+  # Get coordinates in display space (x4)
+  v0 <<= v0
+  v0 <<= v0
+  v1 <<= v1
+  v1 <<= v1
+  # Get pointer to right sprite (direction x 8)
+  i := player-tile
+  v2 <<= v2
+  v2 <<= v2
+  v2 <<= v2
+  i += v2
+  # Render
+  sprite v0 v1 4
+  return
+
+: exit-from-map
+  play-click
+  v0 := OCTO_KEY_Q
+  if v0 key then jump exit-from-map
+  mark-screen-dirty
+  return

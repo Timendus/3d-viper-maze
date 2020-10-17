@@ -1,0 +1,219 @@
+#####################
+# Nodes and leafs - the binary tree that does the decision making
+# This needs to be below the 3D image data in order to be able to reference the
+# labels in macros.
+
+# Convenience macros and constants
+
+:const numc14nodes 14
+:const numc23nodes 26
+:const numc14leafs 14
+:const numc23leafs 27
+
+:macro coord X Y {
+  :byte { ( ( X + 1 ) << 4 ) | Y }
+}
+
+:macro c1node X { :byte { X } }
+:macro c2node X { :byte { numc14nodes + X } }
+:macro c3node X { :byte { numc14nodes + numc23nodes + X } }
+:macro c4node X { :byte { numc14nodes + numc23nodes + numc23nodes + X } }
+
+:macro c1leaf X { :byte { 0x80 + X } }
+:macro c2leaf X { :byte { 0x80 + numc14leafs + X } }
+:macro c3leaf X { :byte { 0x80 + numc14leafs + numc23leafs + X } }
+:macro c4leaf X { :byte { 0x80 + numc14leafs + numc23leafs + numc23leafs + X } }
+
+
+# Nodes represent decisions: given this point relative to the player, if there
+# is a wall there or not, go to this node or leaf. The most significant bit of
+# the target entry indicates if its a node (0) or a leaf (1). This
+# implementation detail is hidden through the macros.
+: nodes
+
+: nodes-column-one
+#        X Y  no wall   wall
+  coord -1 0  c1node 3  c1node 1   # node 0
+  coord  0 1  c1node 2  c1leaf 3   # node 1
+  coord -1 1  c1node 9  c1leaf 0   # node 2
+  coord  0 1  c1leaf 1  c1node 4   # node 3
+  coord -1 1  c1node 5  c1leaf 4   # node 4
+  coord -1 2  c1node 6  c1leaf 5   # node 5
+  coord -1 3  c1node 7  c1leaf 6   # node 6
+  coord -1 4  c1node 8  c1leaf 7   # node 7
+  coord -1 5  c1leaf 9  c1leaf 8   # node 8
+  coord  0 2  c1leaf 2  c1node 10  # node 9
+  coord -1 2  c1node 11 c1leaf 2   # node 10
+  coord -1 3  c1node 12 c1leaf 10  # node 11
+  coord -1 4  c1node 13 c1leaf 11  # node 12
+  coord -1 5  c1leaf 13 c1leaf 12  # node 13
+
+: nodes-column-two
+#        X Y  no wall    wall
+  coord  0 1  c2node 1   c2leaf 8   # node 0
+  coord  0 2  c2node 2   c2leaf 9   # node 1
+  coord -1 2  c2node 3   c2node 9   # node 2
+  coord  0 3  c2node 4   c2node 18  # node 3
+  coord  0 4  c2node 5   c2leaf 16  # node 4
+  coord  0 5  c2node 6   c2node 8   # node 5
+  coord -1 4  c2leaf 2   c2node 7   # node 6
+  coord -1 5  c2leaf 1   c2leaf 1   # node 7
+  coord -1 4  c2node 25  c2leaf 21  # node 8
+  coord  0 3  c2node 10  c2leaf 10  # node 9
+  coord -1 3  c2node 11  c2node 13  # node 10
+  coord  0 4  c2node 12  c2node 21  # node 11
+  coord  0 5  c2node 24  c2leaf 22  # node 12
+  coord  0 4  c2node 14  c2leaf 15  # node 13
+  coord -1 4  c2node 15  c2node 16  # node 14
+  coord  0 5  c2leaf 6   c2node 23  # node 15
+  coord  0 5  c2node 17  c2leaf 20  # node 16
+  coord -1 5  c2leaf 7   c2leaf 0   # node 17
+  coord -1 3  c2node 19  c2leaf 11  # node 18
+  coord -1 4  c2node 20  c2leaf 12  # node 19
+  coord -1 5  c2leaf 14  c2leaf 13  # node 20
+  coord -1 4  c2node 22  c2leaf 17  # node 21
+  coord -1 5  c2leaf 19  c2leaf 18  # node 22
+  coord -1 5  c2leaf 25  c2leaf 23  # node 23
+  coord -1 5  c2leaf 5   c2leaf 4   # node 24
+  coord -1 5  c2leaf 26  c2leaf 24  # node 25
+
+: nodes-column-three
+#        X Y  no wall    wall
+  coord  0 1  c3node 1   c3leaf 8   # node 0
+  coord  0 2  c3node 2   c3leaf 9   # node 1
+  coord  1 2  c3node 3   c3node 9   # node 2
+  coord  0 3  c3node 4   c3node 18  # node 3
+  coord  0 4  c3node 5   c3leaf 16  # node 4
+  coord  0 5  c3node 6   c3node 8   # node 5
+  coord  1 4  c3leaf 2   c3node 7   # node 6
+  coord  1 5  c3leaf 3   c3leaf 1   # node 7
+  coord  1 4  c3node 25  c3leaf 21  # node 8
+  coord  0 3  c3node 10  c3leaf 10  # node 9
+  coord  1 3  c3node 11  c3node 13  # node 10
+  coord  0 4  c3node 12  c3node 21  # node 11
+  coord  0 5  c3node 24  c3leaf 22  # node 12
+  coord  0 4  c3node 14  c3leaf 15  # node 13
+  coord  1 4  c3node 15  c3node 16  # node 14
+  coord  0 5  c3leaf 6   c3node 23  # node 15
+  coord  0 5  c3node 17  c3leaf 20  # node 16
+  coord  1 5  c3leaf 7   c3leaf 0   # node 17
+  coord  1 3  c3node 19  c3leaf 11  # node 18
+  coord  1 4  c3node 20  c3leaf 12  # node 19
+  coord  1 5  c3leaf 14  c3leaf 13  # node 20
+  coord  1 4  c3node 22  c3leaf 17  # node 21
+  coord  1 5  c3leaf 19  c3leaf 18  # node 22
+  coord  1 5  c3leaf 25  c3leaf 23  # node 23
+  coord  1 5  c3leaf 5   c3leaf 4   # node 24
+  coord  1 5  c3leaf 26  c3leaf 24  # node 25
+
+: nodes-column-four
+#        X Y  no wall   wall
+  coord  1 0  c4node 3  c4node 1   # node 0
+  coord  0 1  c4node 2  c4leaf 3   # node 1
+  coord  1 1  c4node 9  c4leaf 0   # node 2
+  coord  0 1  c4leaf 1  c4node 4   # node 3
+  coord  1 1  c4node 5  c4leaf 4   # node 4
+  coord  1 2  c4node 6  c4leaf 5   # node 5
+  coord  1 3  c4node 7  c4leaf 6   # node 6
+  coord  1 4  c4node 8  c4leaf 7   # node 7
+  coord  1 5  c4leaf 9  c4leaf 8   # node 8
+  coord  0 2  c4leaf 2  c4node 10  # node 9
+  coord  1 2  c4node 11 c4leaf 2   # node 10
+  coord  1 3  c4node 12 c4leaf 10  # node 11
+  coord  1 4  c4node 13 c4leaf 11  # node 12
+  coord  1 5  c4leaf 13 c4leaf 12  # node 13
+
+
+# Leafs represent images to be rendered. A path of nodes should always lead to
+# a leaf. The leafs themselves are pointers to the right images.
+: leafs
+
+  # Column 1
+  pointer hall-0+0+0      # leaf 0
+  pointer hall-1+0+0      # leaf 1
+  pointer hall-2+0+0      # leaf 2
+  pointer wall-1+0+0      # leaf 3
+  pointer wall-1-1+0+0    # leaf 4
+  pointer wall-1-2+0+0    # leaf 5
+  pointer wall-1-3+0+0    # leaf 6
+  pointer wall-1-4+0+0    # leaf 7
+  pointer wall-1-5+0+0    # leaf 8
+  pointer wall-1-6+0+0    # leaf 9
+  pointer wall-2-3+0+0    # leaf 10
+  pointer wall-2-4+0+0    # leaf 11
+  pointer wall-2-5+0+0    # leaf 12
+  pointer wall-2-6+0+0    # leaf 13
+
+  # Column 2
+  pointer hall-0+16+0     # leaf 0
+  pointer hall-3+16+0     # leaf 1
+  pointer hall-3-5+16+0   # leaf 2
+  pointer hall-3-6+16+0   # leaf 3
+  pointer hall-4+16+0     # leaf 4
+  pointer hall-4-6+16+0   # leaf 5
+  pointer hall-5+16+0     # leaf 6
+  pointer hall-6+16+0     # leaf 7
+  pointer wall-1+16+0     # leaf 8
+  pointer wall-2+16+0     # leaf 9
+  pointer wall-3+16+0     # leaf 10
+  pointer wall-3-3+16+0   # leaf 11
+  pointer wall-3-4+16+0   # leaf 12
+  pointer wall-3-5+16+0   # leaf 13
+  pointer wall-3-6+16+0   # leaf 14
+  pointer wall-4+16+0     # leaf 15
+  pointer wall-4-3+16+0   # leaf 16
+  pointer wall-4-4+16+0   # leaf 17
+  pointer wall-4-5+16+0   # leaf 18
+  pointer wall-4-6+16+0   # leaf 19
+  pointer wall-5+16+0     # leaf 20
+  pointer wall-5-3+16+0   # leaf 21
+  pointer wall-5-4+16+0   # leaf 22
+  pointer wall-5-5+16+0   # leaf 23
+  pointer wall-5-5-3+16+0 # leaf 24
+  pointer wall-5-6+16+0   # leaf 25
+  pointer wall-5-6-3+16+0 # leaf 26
+
+  # Column 3
+  pointer hall-0+32+0     # leaf 0
+  pointer hall-3+32+0     # leaf 1
+  pointer hall-3-5+32+0   # leaf 2
+  pointer hall-3-6+32+0   # leaf 3
+  pointer hall-4+32+0     # leaf 4
+  pointer hall-4-6+32+0   # leaf 5
+  pointer hall-5+32+0     # leaf 6
+  pointer hall-6+32+0     # leaf 7
+  pointer wall-1+32+0     # leaf 8
+  pointer wall-2+32+0     # leaf 9
+  pointer wall-3+32+0     # leaf 10
+  pointer wall-3-3+32+0   # leaf 11
+  pointer wall-3-4+32+0   # leaf 12
+  pointer wall-3-5+32+0   # leaf 13
+  pointer wall-3-6+32+0   # leaf 14
+  pointer wall-4+32+0     # leaf 15
+  pointer wall-4-3+32+0   # leaf 16
+  pointer wall-4-4+32+0   # leaf 17
+  pointer wall-4-5+32+0   # leaf 18
+  pointer wall-4-6+32+0   # leaf 19
+  pointer wall-5+32+0     # leaf 20
+  pointer wall-5-3+32+0   # leaf 21
+  pointer wall-5-4+32+0   # leaf 22
+  pointer wall-5-5+32+0   # leaf 23
+  pointer wall-5-5-3+32+0 # leaf 24
+  pointer wall-5-6+32+0   # leaf 25
+  pointer wall-5-6-3+32+0 # leaf 26
+
+  # Column 4
+  pointer hall-0+48+0     # leaf 0
+  pointer hall-1+48+0     # leaf 1
+  pointer hall-2+48+0     # leaf 2
+  pointer wall-1+48+0     # leaf 3
+  pointer wall-1-1+48+0   # leaf 4
+  pointer wall-1-2+48+0   # leaf 5
+  pointer wall-1-3+48+0   # leaf 6
+  pointer wall-1-4+48+0   # leaf 7
+  pointer wall-1-5+48+0   # leaf 8
+  pointer wall-1-6+48+0   # leaf 9
+  pointer wall-2-3+48+0   # leaf 10
+  pointer wall-2-4+48+0   # leaf 11
+  pointer wall-2-5+48+0   # leaf 12
+  pointer wall-2-6+48+0   # leaf 13

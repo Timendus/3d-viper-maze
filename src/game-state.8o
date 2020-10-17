@@ -1,0 +1,22 @@
+#####################
+# Game state
+
+: player
+  0 0 # X, Y
+: player-orientation
+  0 # orientation
+
+: dirty
+  0
+
+: current-song
+  0 0
+: music-position
+  0
+: current-song-backup
+  0 0
+: music-position-backup
+  0
+
+: current-map
+  0 0

@@ -1,0 +1,137 @@
+#####################
+# Render the map to the screen in pseudo-3D
+# (for the actual gameplay)
+: render-3d
+  column-two
+    clock-tick
+  column-three
+    clock-tick
+  foreground
+    clock-tick
+  column-one
+    clock-tick
+  column-four
+    clock-tick
+  return
+
+: column-one
+  i := long nodes-column-one
+  find-sprite
+  v0 := 0
+  jump render-column
+
+: column-two
+  i := long nodes-column-two
+  find-sprite
+  v0 := 16
+  jump render-column
+
+: column-three
+  i := long nodes-column-three
+  find-sprite
+  v0 := 32
+  jump render-column
+
+: column-four
+  i := long nodes-column-four
+  find-sprite
+  v0 := 48
+  # Fall through
+
+: render-column
+  v1 := 0
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v1 := 16
+  sprite v0 v1 0
+  return
+
+: foreground
+  v4 := 1
+  foreground-look
+  if v0 == 3 then jump finish-near
+  if v0 == 4 then jump button-near
+  if v0 == 5 then jump viper-near
+: foreground-far
+  v4 := 2
+  foreground-look
+  if v0 == 3 then jump finish-far
+  if v0 == 4 then jump button-far
+  if v0 == 5 then jump viper-far
+  return
+
+: foreground-look
+  v3 := 1
+  look-ahead
+  v1 := 0x07
+  v0 &= v1
+  return
+
+: finish-far   i := long sprites+32+16  foreground-draw  return
+: finish-near  i := long sprites+48+0   foreground-draw  jump foreground-far
+: button-far   i := long sprites+0+16   foreground-draw  return
+: button-near  i := long sprites+0+0    foreground-draw  jump foreground-far
+: viper-far    i := long sprites+32+0   foreground-draw  return
+: viper-near   i := long sprites+16+16  foreground-draw  jump foreground-far
+
+: foreground-draw
+  v0 := 24
+  v1 := 16
+  sprite v0 v1 0
+  return
+
+#####################
+# This routine walks through the binary tree with nodes and leafs
+# Input: i pointing to a node
+# Output: i pointing to the image to be rendered
+: find-sprite
+  # Load this node and find what's there
+  load v2
+  v5 := v1
+  v6 := v2
+  # Coordinates are stored together in first byte, so unpack
+  v1 := 0x0F
+  v4 := v0
+  v4 &= v1
+  v0 >>= v0
+  v0 >>= v0
+  v0 >>= v0
+  v0 >>= v0
+  v0 &= v1
+  v3 := v0
+  look-ahead
+  # Did we encounter a wall?
+  if v0 == 1 begin
+    v0 := v6
+  else
+    v0 := v5
+  end
+  # Is the next step a node or a leaf?
+  v1 := 0x80
+  v2 := v0
+  v2 &= v1
+  if v2 == 0x80 begin
+    # Next is a leaf, extract the pointer
+    i := long leafs
+    v1 := 0b01111111
+    v0 &= v1 # AND out the leaf indicator bit
+    v0 <<= v0
+    i += v0
+    load v1
+    # We now have the address of the leaf image in v0 and v1
+    # Use self-modifying code trick to (long) load this address in `i`:
+    i := walk-set-i
+    save v1
+    0xF0 0x00 # i := long ...
+: walk-set-i
+    0 0
+    return
+  else
+    # Next is a node, load it and restart
+    i := long nodes
+    i += v0
+    i += v0
+    i += v0
+    jump find-sprite
+  end

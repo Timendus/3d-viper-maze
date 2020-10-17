@@ -1,0 +1,124 @@
+#####################
+# Untitled Chip-8 Game
+# An Octojam 7 entry
+
+:macro pointer ADDRESS {
+  :byte { ADDRESS >> 8 }
+  :byte { ADDRESS }
+}
+
+: main
+  lores
+  plane 3
+  title-screen
+
+  # Start with training map
+  :unpack 0 training1
+  select-map
+  start-map
+
+: main-redraw
+  clear
+  render-3d
+  mark-screen-clean
+: main-loop
+  check-keys
+  clock-tick
+  i := dirty    # Is the screen dirty?
+  load v0
+  if v0 == 1 then jump main-redraw
+  jump main-loop
+
+# Handle those things that need attention in parallel to gameplay,
+# like sound and enemy movement
+: clock-tick
+  play-music
+  return
+
+# Mark the screen dirty or clean to manage redraws
+
+: mark-screen-dirty
+  i := dirty
+  v0 := 1
+  save v0
+  return
+
+: mark-screen-clean
+  i := dirty
+  v0 := 0
+  save v0
+  return
+
+#####################
+# Transition screens and animations
+
+: death-by-snake-animation
+  # TODO: animate snake ;)
+  play-click
+  v0 := 10
+  loop
+    scroll-up 1
+    v1 := 10
+    delay := v1
+    loop
+      v1 := delay
+      while v1 != 0
+    again
+    v0 -= 1
+    while v0 != 0
+  again
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  clear
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  return
+
+: title-screen
+  # Select background music
+  :unpack 0 knee-deep-in-trouble
+  select-song
+  # Render this image
+  i := long title-screen+0+0
+  bitmap-to-screen
+  # And wait for a key press
+  wait-key-release
+  jump wait-key-press
+
+: map-victory-screen
+  # Select background music
+  :unpack 0 knee-deep-in-trouble
+  select-song
+  # Select immediate sound effect
+  :unpack 0 victory-1
+  interject-song
+  # Render this image
+  i := long map-victory+0+0
+  bitmap-to-screen
+  # And wait for a key press
+  wait-key-release
+  jump wait-key-press
+
+: bitmap-to-screen
+  clear
+  v0 := 0
+: bitmap-to-screen-loop
+  v1 := 0
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v1 := 16
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v0 += 16
+  if v0 != 64 then jump bitmap-to-screen-loop
+  return
