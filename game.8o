@@ -1,1019 +1,19 @@
-#####################
-# 3D Viper Maze
-# An Octojam 7 entry
-# By Timendus
-# https://github.com/Timendus/3d-viper-maze
+
+: main
+  jump 0x0202
+:org 0x1000
 
 :macro pointer ADDRESS {
   :byte { ADDRESS >> 8 }
   :byte { ADDRESS }
 }
 
-: main
-  lores
-  plane 3
-  title-screen
-
-  # Start with training map
-  :unpack 0 training1
-  select-map
-  start-map
-
-: main-redraw
-  clear
-  render-3d
-  mark-screen-clean
-: main-loop
-  check-keys
-  clock-tick
-  i := dirty    # Is the screen dirty?
-  load v0
-  if v0 == 1 then jump main-redraw
-  jump main-loop
-
-# Handle those things that need attention in parallel to gameplay,
-# like sound and enemy movement
-: clock-tick
-  play-music
-  return
-
-# Mark the screen dirty or clean to manage redraws
-
-: mark-screen-dirty
-  i := dirty
-  v0 := 1
-  save v0
-  return
-
-: mark-screen-clean
-  i := dirty
-  v0 := 0
-  save v0
-  return
-
-#####################
-# Transition screens and animations
-
-: death-by-snake-animation
-  # TODO: animate snake ;)
-  play-click
-  v0 := 10
-  loop
-    scroll-up 1
-    v1 := 10
-    delay := v1
-    loop
-      v1 := delay
-      while v1 != 0
-    again
-    v0 -= 1
-    while v0 != 0
-  again
-  v1 := 50
-  delay := v1
-  loop
-    v1 := delay
-    while v1 != 0
-  again
-  clear
-  v1 := 50
-  delay := v1
-  loop
-    v1 := delay
-    while v1 != 0
-  again
-  return
-
-: title-screen
-  # Select background music
-  :unpack 0 knee-deep-in-trouble
-  select-song
-  # Render this image
-  i := long title-screen+0+0
-  bitmap-to-screen
-  # And wait for a key press
-  wait-key-release
-  jump wait-key-press
-
-: map-victory-screen
-  # Select background music
-  :unpack 0 knee-deep-in-trouble
-  select-song
-  # Select immediate sound effect
-  :unpack 0 victory-1
-  interject-song
-  # Render this image
-  i := long map-victory+0+0
-  bitmap-to-screen
-  # And wait for a key press
-  wait-key-release
-  jump wait-key-press
-
-: bitmap-to-screen
-  clear
-  v0 := 0
-: bitmap-to-screen-loop
-  v1 := 0
-  sprite v0 v1 0
-  v1 := 64
-  i += v1
-  v1 := 16
-  sprite v0 v1 0
-  v1 := 64
-  i += v1
-  v0 += 16
-  if v0 != 64 then jump bitmap-to-screen-loop
-  return
-#####################
-# Look at place (v3 - 1, v4) relative to the player
-# Return value at that position in v0
-: look-ahead
-  i := player
-  load v2
-  if v2 == 0 then jump look-ahead-up
-  if v2 == 1 then jump look-ahead-right
-  if v2 == 2 then jump look-ahead-down
-  # Else fall through
-: look-ahead-left
-  v0 -= v4
-  v1 += 1
-  v1 -= v3
-  jump map-get
-: look-ahead-right
-  v0 += v4
-  v1 -= 1
-  v1 += v3
-  jump map-get
-: look-ahead-up
-  v0 -= 1
-  v0 += v3
-  v1 -= v4
-  jump map-get
-: look-ahead-down
-  v0 += 1
-  v0 -= v3
-  v1 += v4
-  jump map-get
-
-#####################
-# Query the map for the value at a given position
-# Input: X in v0, Y in v1 (destructive)
-# Output: map value in v0
-: map-get
-  map-point
-  load v0
-  return
-
-# Input: X in v0, Y in v1 (destructive)
-# Output: i points to right place on map
-# Destroys v0, v1, v2, v3
-: map-point
-  v2 := v0
-  v3 := v1
-  map-start
-  i += v2
-  v3 <<= v3
-  v3 <<= v3
-  v3 <<= v3
-  v3 <<= v3
-  i += v3
-  return
-
-# Destroys v0, v1
-: map-start
-  i := current-map
-  load v1
-  i := map-point-smc
-  save v1
-  0xF0 0x00 # i := long ...
-  : map-point-smc
-  0 0
-  return
-
-# Destroys v0, v1
-: map-metadata-start
-  map-start
-  v0 := 128
-  i += v0
-  return
-
-#####################
-# Map switching routines
-# `select-map` loads the right map and player position
-# `start-map` starts the matching soundtrack
-
-# Input: Address of map 'unpacked' in v0 and v1
-: select-map
-  # Make new map the current map
-  i := long current-map
-  save v1
-  # Fall through
-
-: send-player-back-to-start
-  v4 := 0
-  v5 := 0
-: select-map-loop
-  v0 := v4
-  v1 := v5
-  map-get
-  if v0 == 0x02 then jump select-map-start-found
-  v4 += 1
-  if v4 != 7 then jump select-map-loop
-  v4 := 0
-  v5 += 1
-  jump select-map-loop
-: select-map-start-found
-  # Put the player in the start position (direction is fixed)
-  i := long player
-  v0 := v4
-  v1 := v5
-  v2 := 1
-  save v2
-  return
-
-# Input: none
-: start-map
-  # Load the map's soundtrack from the meta-data and select it
-  map-metadata-start
-  load v1
-  select-song
-  return
-#####################
-# Render the map to the screen in pseudo-3D
-# (for the actual gameplay)
-: render-3d
-  column-two
-    clock-tick
-  column-three
-    clock-tick
-  foreground
-    clock-tick
-  column-one
-    clock-tick
-  column-four
-    clock-tick
-  return
-
-: column-one
-  i := long nodes-column-one
-  find-sprite
-  v0 := 0
-  jump render-column
-
-: column-two
-  i := long nodes-column-two
-  find-sprite
-  v0 := 16
-  jump render-column
-
-: column-three
-  i := long nodes-column-three
-  find-sprite
-  v0 := 32
-  jump render-column
-
-: column-four
-  i := long nodes-column-four
-  find-sprite
-  v0 := 48
-  # Fall through
-
-: render-column
-  v1 := 0
-  sprite v0 v1 0
-  v1 := 64
-  i += v1
-  v1 := 16
-  sprite v0 v1 0
-  return
-
-: foreground
-  v4 := 1
-  foreground-look
-  if v0 == 3 then jump finish-near
-  if v0 == 4 then jump button-near
-  if v0 == 5 then jump viper-near
-: foreground-far
-  v4 := 2
-  foreground-look
-  if v0 == 3 then jump finish-far
-  if v0 == 4 then jump button-far
-  if v0 == 5 then jump viper-far
-  return
-
-: foreground-look
-  v3 := 1
-  look-ahead
-  v1 := 0x07
-  v0 &= v1
-  return
-
-: finish-far   i := long sprites+32+16  foreground-draw  return
-: finish-near  i := long sprites+48+0   foreground-draw  jump foreground-far
-: button-far   i := long sprites+0+16   foreground-draw  return
-: button-near  i := long sprites+0+0    foreground-draw  jump foreground-far
-: viper-far    i := long sprites+32+0   foreground-draw  return
-: viper-near   i := long sprites+16+16  foreground-draw  jump foreground-far
-
-: foreground-draw
-  v0 := 24
-  v1 := 16
-  sprite v0 v1 0
-  return
-
-#####################
-# This routine walks through the binary tree with nodes and leafs
-# Input: i pointing to a node
-# Output: i pointing to the image to be rendered
-: find-sprite
-  # Load this node and find what's there
-  load v2
-  v5 := v1
-  v6 := v2
-  # Coordinates are stored together in first byte, so unpack
-  v1 := 0x0F
-  v4 := v0
-  v4 &= v1
-  v0 >>= v0
-  v0 >>= v0
-  v0 >>= v0
-  v0 >>= v0
-  v0 &= v1
-  v3 := v0
-  look-ahead
-  # Did we encounter a wall?
-  if v0 == 1 begin
-    v0 := v6
-  else
-    v0 := v5
-  end
-  # Is the next step a node or a leaf?
-  v1 := 0x80
-  v2 := v0
-  v2 &= v1
-  if v2 == 0x80 begin
-    # Next is a leaf, extract the pointer
-    i := long leafs
-    v1 := 0b01111111
-    v0 &= v1 # AND out the leaf indicator bit
-    v0 <<= v0
-    i += v0
-    load v1
-    # We now have the address of the leaf image in v0 and v1
-    # Use self-modifying code trick to (long) load this address in `i`:
-    i := walk-set-i
-    save v1
-    0xF0 0x00 # i := long ...
-: walk-set-i
-    0 0
-    return
-  else
-    # Next is a node, load it and restart
-    i := long nodes
-    i += v0
-    i += v0
-    i += v0
-    jump find-sprite
-  end
-#####################
-# Show the map on screen (top down) with a blinking player position
-# (as an in-game help and for debugging)
-# Pressing Q exits the mini map and returns to normal gameplay
-: mini-map
-  clear
-  play-click
-  render-map
-: mini-map-loop
-  render-player
-  v0 := 20
-  delay := v0
-: mini-map-delay-loop
-  v0 := OCTO_KEY_Q
-  if v0 key then jump exit-from-map
-  v0 := delay
-  if v0 == 0 then jump mini-map-loop
-  jump mini-map-delay-loop
-
-: render-map
-  :alias X v6
-  :alias Y v7
-  X := 0
-  Y := 0
-: render-map-loop
-  # Look up value at X,Y
-  v0 := X
-  v1 := Y
-  map-get
-  # Don't show tile if its still hidden
-  v1 := 0b00001000
-  v1 &= v0
-  if v1 != 0 then v0 := 0
-  # Mask out three relevant bits
-  v1 := 0x07
-  v0 &= v1
-  # Get pointer to right sprite
-  # Sprites are 8 bytes, so sprite = tiles + map value * 4
-  i := top-down-tiles
-  v0 <<= v0
-  v0 <<= v0
-  v0 <<= v0
-  i += v0
-  # Get coordinates in display space (x4)
-  v4 := X
-  v4 <<= v4
-  v4 <<= v4
-  v5 := Y
-  v5 <<= v5
-  v5 <<= v5
-  # Render
-  sprite v4 v5 4
-  X += 1
-  if X < 16 then jump render-map-loop
-  # Next row
-  X := 0
-  Y += 1
-  if Y < 8 then jump render-map-loop
-  # Done
-  return
-
-: render-player
-  # Get player properties
-  i := player
-  load v2
-  # Get coordinates in display space (x4)
-  v0 <<= v0
-  v0 <<= v0
-  v1 <<= v1
-  v1 <<= v1
-  # Get pointer to right sprite (direction x 8)
-  i := player-tile
-  v2 <<= v2
-  v2 <<= v2
-  v2 <<= v2
-  i += v2
-  # Render
-  sprite v0 v1 4
-  return
-
-: exit-from-map
-  play-click
-  v0 := OCTO_KEY_Q
-  if v0 key then jump exit-from-map
-  mark-screen-dirty
-  return
-#####################
-# Non-blocking key input check
-# Updates the player data on input, checks for collisions
-# Destroys v0 - v3
-: check-keys
-  i := player
-  load v2
-
-  # Show mini map
-  v0 := OCTO_KEY_Q
-  if v0 key then jump mini-map
-
-  # Rotation
-  v0 := OCTO_KEY_A
-  if v0 key then jump rotate-left
-  v0 := OCTO_KEY_D
-  if v0 key then jump rotate-right
-
-  # Movement
-  if v2 == 0 then jump going-up
-  if v2 == 1 then jump going-right
-  if v2 == 2 then jump going-down
-  # Else fall through:
-
-: going-left
-  v0 := OCTO_KEY_W
-  if v0 key then jump move-left
-  v0 := OCTO_KEY_S
-  if v0 key then jump move-right
-  return
-: going-up
-  v0 := OCTO_KEY_W
-  if v0 key then jump move-up
-  v0 := OCTO_KEY_S
-  if v0 key then jump move-down
-  return
-: going-right
-  v0 := OCTO_KEY_W
-  if v0 key then jump move-right
-  v0 := OCTO_KEY_S
-  if v0 key then jump move-left
-  return
-: going-down
-  v0 := OCTO_KEY_W
-  if v0 key then jump move-down
-  v0 := OCTO_KEY_S
-  if v0 key then jump move-up
-  return
-
-: rotate-left
-  v0 := 3
-  v2 -= 1
-  v0 &= v2
-  i := player-orientation
-  save v0
-  mark-screen-dirty
-  jump wait-key-release
-: rotate-right
-  v0 := 3
-  v2 += 1
-  v0 &= v2
-  i := player-orientation
-  save v0
-  mark-screen-dirty
-  jump wait-key-release
-: move-right
-  i := player
-  load v1
-  v2 := 15
-  v0 += 1
-  v0 &= v2
-  jump collide-or-save
-: move-left
-  i := player
-  load v1
-  v2 := 15
-  v0 -= 1
-  v0 &= v2
-  jump collide-or-save
-: move-up
-  i := player
-  load v1
-  v2 := 7
-  v1 -= 1
-  v1 &= v2
-  jump collide-or-save
-: move-down
-  i := player
-  load v1
-  v2 := 7
-  v1 += 1
-  v1 &= v2
-  # Fall through
-
-: collide-or-save
-  # Backup position
-  v4 := v0
-  v5 := v1
-  # Is there a wall at this position?
-  map-get
-  if v0 == 1 then jump wait-key-release
-  # Otherwise, update position
-  v1 := v5
-  v3 := v0 # save v0 for check-triggers
-  v0 := v4
-  i := player
-  save v1
-  check-triggers
-  mark-screen-dirty
-  # Fall through
-
-: wait-key-release
-  clock-tick
-  v0 := OCTO_KEY_W
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_A
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_S
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_D
-  if v0 key then jump wait-key-release
-  return
-
-: check-triggers
-  # Did we hit a trigger tile?
-  v0 := 0xF0
-  v3 &= v0
-  if v3 == 0 then return
-  v3 >>= v3
-  v3 >>= v3
-  v3 >>= v3
-  map-metadata-start
-  i += v3
-  load v1
-  i := check-triggers-smc
-  v2 := 0x10
-  v0 |= v2
-  save v1
-: check-triggers-smc
-  0 0
-
-# Blocking "press any key" routine
-# (does play music though)
-# Returns pressed key in v5
-: wait-key-press
-  v5 := 0
-: wait-key-press-loop
-  play-music
-  if v5 key then return
-  v5 += 1
-  if v5 != 16 then jump wait-key-press-loop
-  jump wait-key-press
-#####################
-# A non-blocking music player
-# `play-music` needs to be called at a reasonable frequency to keep the melody
-# going. Also, it hogs the buzzer and delay special registers. So if you need to
-# use those, stop calling this routine and reset the buzzer to zero.
-
-:const c-note    0
-:const c-repeat  1
-:const c-da-capo 2
-:const c-stop    3
-
-# Input: none
-: play-click
-  i := long click
-  v0 := 5
-  audio
-  buzzer := v0
-  return
-
-# Input: 'unpacked' address of song in v0 and v1
-: select-song # and return to position 0
-  i := current-song
-  v2 := 0
-  save v2
-  # Clear any old backup songs
-  v0 := 0
-  v1 := 0
-  i := current-song-backup
-  save v1
-  return
-
-# Input: 'unpacked' address of song in v0 and v1
-: interject-song # and resume playing afterwards
-  v3 := v0
-  v4 := v1
-  # Check if we're already in an interjected song (can't do two)
-  i := current-song-backup
-  load v1
-  v0 |= v1
-  if v0 != 0 then jump interject-song-leave-backup-untouched
-  # Swap current song to backup and new song to current
-  i := current-song
-  load v2
-  i := current-song-backup
-  save v2
-: interject-song-leave-backup-untouched
-  v0 := v3
-  v1 := v4
-  v2 := 0
-  i := current-song
-  save v2
-  # Force `play-music` to start the new song right away
-  delay := v2
-  return
-
-# Input: none
-# Destroys: v0 - v4
-: play-music
-  # Is the last note finished?
-  v0 := delay
-  if v0 != 0 then return
-
-  # Load and update our position in the song
-  i := music-position
-  load v0
-  v4 := v0
-  v0 += 1
-  i := music-position
-  save v0
-
-  # Load the next music instruction
-  music-pointer
-  load v3
-
-  if v2 == c-note   then jump music-note
-  if v2 == c-repeat then jump music-repeat
-  if v2 == c-stop   then jump music-stop
-  # Else, it's a da capo
-
-: music-da-capo
-  v0 := 0
-  i := music-position
-  save v0
-  return
-
-: music-note
-  i := music-smc
-  save v1
-  0xF0 0x00 # i := long ...
-: music-smc
-  0 0
-  # Play the sound!
-  audio
-  delay := v3
-  vf := 255
-  buzzer := vf
-  return
-
-: music-repeat
-  v5 := v0
-  v6 := v1
-  music-pointer
-  if v5 == 0 begin
-    # We've done all the repetitions, reset for the next playthrough
-    v0 := v6
-    save v0
-  else
-    # Decrease the loop counter
-    v0 := v5
-    v0 -= 1
-    save v0
-
-    # Move the position back as many steps as the instruction dictates
-    i := music-position
-    load v0
-    v0 -= v3
-    i := music-position
-    save v0
-  end
-  jump play-music
-
-: music-stop
-  # Do we have anything left in backup to play?
-  i := current-song-backup
-  load v2
-  v3 := v0
-  v3 &= v1
-  if v3 != 0 begin
-    i := current-song
-    save v2
-    v0 := 0
-    v1 := 0
-    i := current-song-backup
-    save v1
-    return
-  else
-    # Step back one position so we don't play anything anymore
-    i := music-position
-    load v0
-    v0 -= 1
-    i := music-position
-    save v0
-  end
-  return
-
-: music-pointer
-  i := current-song
-  load v1
-  i := music-pointer-smc
-  save v1
-  0xF0 0x00  # i := long ...
-: music-pointer-smc
-  0 0
-  i += v4
-  i += v4
-  i += v4
-  i += v4
-  return
-#####################
-# Musical accompaniment
-
-# Convenience macros
-
-:macro note ADDRESS DURATION {
-  :byte { ADDRESS >> 8 }
-  :byte { ADDRESS }
-  :byte c-note
-  :byte { DURATION }
+:macro unpack-long ADDR {
+  :calc hi { 0xFF & ADDR >> 8 }
+  :calc lo { 0xFF & ADDR }
+  v0 := hi
+  v1 := lo
 }
-
-:macro rest DURATION {
-  :byte { --- >> 8 }
-  :byte { --- }
-  :byte c-note
-  :byte { DURATION }
-}
-
-:macro repeat TIMES LABEL {
-  :byte { TIMES - 1 }
-  :byte { TIMES - 1 }
-  :byte c-repeat
-  :byte { ( ( HERE - LABEL ) / 4 ) + 1 }
-}
-
-:macro da-capo {
-  :byte 0
-  :byte 0
-  :byte c-da-capo
-  :byte 0
-}
-
-:macro stop {
-  :byte 0
-  :byte 0
-  :byte c-stop
-  :byte 0
-}
-
-# Available samples
-
-: A$1 0xFF 0xFF 0xFF 0xFF 0xE0 0x00 0x00 0x00 0x07 0xFF 0xFF 0xFF 0xFE 0x00 0x00 0x00
-: C-2 0xFF 0xFF 0xFF 0xFE 0x00 0x00 0x00 0x03 0xFF 0xFF 0xFF 0xF0 0x00 0x00 0x00 0x1F
-: C$2 0xFF 0xFF 0xFF 0xF8 0x00 0x00 0x00 0x3F 0xFF 0xFF 0xFE 0x00 0x00 0x00 0x0F 0xFF
-: D-2 0xFF 0xFF 0xFF 0xF0 0x00 0x00 0x01 0xFF 0xFF 0xFF 0xC0 0x00 0x00 0x07 0xFF 0xFF
-: D$2 0xFF 0xFF 0xFF 0xC0 0x00 0x00 0x0F 0xFF 0xFF 0xFC 0x00 0x00 0x01 0xFF 0xFF 0xFF
-: E-2 0xFF 0xFF 0xFF 0x80 0x00 0x00 0x7F 0xFF 0xFF 0x80 0x00 0x00 0x3F 0xFF 0xFF 0xC0
-: F-2 0xFF 0xFF 0xFE 0x00 0x00 0x03 0xFF 0xFF 0xF8 0x00 0x00 0x0F 0xFF 0xFF 0xE0 0x00
-: F$2 0xFF 0xFF 0xFC 0x00 0x00 0x0F 0xFF 0xFF 0x80 0x00 0x01 0xFF 0xFF 0xF8 0x00 0x00
-: G-2 0xFF 0xFF 0xF8 0x00 0x00 0x7F 0xFF 0xFC 0x00 0x00 0x3F 0xFF 0xFE 0x00 0x00 0x1F
-: A$2 0xFF 0xFF 0xC0 0x00 0x1F 0xFF 0xF0 0x00 0x07 0xFF 0xFC 0x00 0x00 0xFF 0xFF 0x80
-: C-3 0xFF 0xFF 0x00 0x01 0xFF 0xFC 0x00 0x03 0xFF 0xF8 0x00 0x0F 0xFF 0xF0 0x00 0x1F
-: G-5 0xE3 0x18 0xC6 0x39 0xCE 0x73 0x8C 0x63 0x18 0xC7 0x39 0xCE 0x71 0x8C 0x63 0x1C
-: F-5 0xE3 0x8E 0x39 0xC7 0x1C 0x63 0x8E 0x38 0xC7 0x1C 0x73 0x8E 0x38 0xE7 0x1C 0x71
-: E-5 0xF1 0xC7 0x1C 0x71 0xC7 0x1C 0x71 0xC7 0x1C 0x71 0xC7 0x8E 0x38 0xE3 0x8E 0x38
-: D-5 0xF1 0xE3 0xC7 0x0E 0x1C 0x78 0xF1 0xC3 0x87 0x1E 0x3C 0x70 0xE1 0xC3 0x8F 0x1E
-: C-5 0xF0 0xF0 0xF1 0xE1 0xE1 0xE3 0xC3 0xC3 0xC7 0x87 0x87 0x0F 0x0F 0x0E 0x1E 0x1E
-: B-4 0xF8 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x7C 0x3C 0x3C 0x3C 0x3C 0x3C # 494hz
-: A$4 0xF8 0x78 0x3C 0x3E 0x1E 0x1F 0x0F 0x07 0x87 0x83 0xC3 0xE1 0xE0 0xF0 0xF0 0x78 # 466hz
-: G$4 0xF8 0x3E 0x0F 0x87 0xC1 0xF0 0x7C 0x3E 0x0F 0x83 0xC1 0xF0 0x7C 0x1E 0x0F 0x83 # 415hz
-: D$4 0xFE 0x07 0xF0 0x3F 0x81 0xFC 0x0F 0xC0 0x7E 0x03 0xF0 0x1F 0x81 0xFC 0x0F 0xE0 # 311hz
-: D-4 0xFE 0x03 0xF8 0x0F 0xE0 0x7F 0x01 0xFC 0x07 0xF0 0x3F 0x80 0xFE 0x03 0xF8 0x1F # 293hz
-: C$4 0xFF 0x01 0xFC 0x07 0xF8 0x0F 0xE0 0x3F 0x80 0x7F 0x01 0xFC 0x03 0xF8 0x0F 0xE0 # 277hz
-: C-4 0xFF 0x00 0xFE 0x01 0xFE 0x03 0xFC 0x03 0xF8 0x07 0xF0 0x0F 0xF0 0x1F 0xE0 0x1F # 262hz
-: F-4 0xFC 0x0F 0xC1 0xF8 0x1F 0x83 0xF0 0x3F 0x07 0xE0 0x7C 0x0F 0xC0 0xF8 0x1F 0x81
-
-: --- 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 # silence
-
-: click 0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
-
-# Songs
-
-: knee-deep-in-trouble
-
-: kdt1   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt1
-: kdt2   note C-2 10  rest 10  note D$2 10  rest 10  note G-2 10  rest 10  note C-3 10  rest 10  repeat 2 kdt2
-: kdt3   note A$1 10  rest 10  note D-2 10  rest 10  note F-2 10  rest 10  note A$2 10  rest 10  repeat 2 kdt3
-: kdt4   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt4
-: kdt5   note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt5
-: kdt6   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt6
-: kdt7   note C-3 10  rest 10  note G-2 10  rest 10  note D$2 10  rest 10  note C-2 10  rest 10  repeat 2 kdt7
-: kdt8   note A$2 10  rest 10  note F-2 10  rest 10  note D-2 10  rest 10  note A$1 10  rest 10  repeat 2 kdt8
-: kdt9   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt9
-: kdt10  note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt10
-         da-capo
-
-: victory-1
-
-  note D-4 4  rest 4      note G$4 4  rest 4      note A$4 4  rest 4
-  note E-5 5  note F-5 5  note E-5 5  note F-5 5  note E-5 5  rest 15
-  note F-4 4  rest 4      note C-5 4  rest 4      note D-5 4  rest 4
-  note F-5 5  note G-5 5  note F-5 5  note G-5 5  note F-5 5  rest 15
-  note G-5 10 rest 10     note G-5 12 rest 10     note F-5 14 rest 10  note G-5 40
-  stop
-
-: victory-2
-
-  note D-4 10  rest 4  note G$4 4  rest 4  note B-4 20  rest 8
-  stop
-#####################
-# Trigger routines
-
-:macro open-wall X Y {
-  v0 := X
-  v1 := Y
-  map-point
-  v0 := 0
-  save v0
-}
-
-:macro close-wall X Y {
-  v0 := X
-  v1 := Y
-  map-point
-  v0 := 1
-  save v0
-}
-
-:macro make-visible X Y {
-  v0 := X
-  v1 := Y
-  map-get
-  v4 := v0
-  v0 := X
-  v1 := Y
-  map-point
-  v0 := 0b11110111
-  v0 &= v4
-  save v0
-}
-
-: map1-button1
-  open-wall 4 3
-  make-visible 2 6
-  :unpack 0 victory-2
-  jump interject-song
-
-: map1-snake1
-  make-visible 5 4
-  death-by-snake-animation
-  send-player-back-to-start
-  jump start-map
-
-: finish-map1
-  map-victory-screen
-  :unpack 0 map2
-  select-map
-  jump start-map
-
-: finish-training1
-  map-victory-screen
-  :unpack 0 training2
-  select-map
-  jump start-map
-
-: training2-button1
-  open-wall 9 4
-  make-visible 7 6
-  :unpack 0 victory-2
-  jump interject-song
-
-: finish-training2
-  map-victory-screen
-  :unpack 0 map1
-  select-map
-  jump start-map
-
-: map2-button1
-  make-visible 3 1
-  :unpack 0 victory-2
-  jump interject-song
-#####################
-# Level definitions
-# First nibble is a trigger (or zero for no trigger)
-# Second nibble is what it should look like, MSB == 1 for invisible on mini-map
-
-: training1
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x00 0x13 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-
-  # Soundtrack
-  pointer knee-deep-in-trouble
-
-  # Triggers
-  pointer finish-training1
-
-: training2
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x01 0x23 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x1C 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-
-  # Soundtrack
-  pointer knee-deep-in-trouble
-
-  # Triggers
-  pointer training2-button1
-  pointer finish-training2
-
-: map1
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x02 0x00 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x00 0x01
-  0x01 0x01 0x01 0x00 0x01 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x01 0x00 0x01 0x01
-  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x01
-  0x01 0x01 0x00 0x01 0x01 0x2D 0x00 0x01 0x01 0x01 0x00 0x01 0x01 0x00 0x00 0x01
-  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01
-  0x01 0x01 0x1C 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x33 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-
-  # Soundtrack
-  pointer knee-deep-in-trouble
-
-  # Triggers
-  pointer map1-button1  # trigger 1
-  pointer map1-snake1   # trigger 2
-  pointer finish-map1   # trigger 3
-
-: map2
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x02 0x00 0x1C 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x00 0x01
-  0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x01 0x00 0x01 0x01
-  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x01
-  0x01 0x01 0x00 0x01 0x01 0x81 0x00 0x01 0x01 0x01 0x00 0x01 0x01 0x00 0x00 0x01
-  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01
-  0x01 0x01 0x80 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x82 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-
-  # Soundtrack
-  pointer knee-deep-in-trouble
-
-  # Triggers
-  pointer map2-button1
 #####################
 # Game state
 
@@ -1151,6 +151,702 @@
   0b00000000
   0b01100000
   0b01100000
+  0b00000000
+#####################
+# String data
+
+:stringmode ascii "\0 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" {
+  :byte { VALUE }
+}
+
+: string-hello-world
+  ascii "Hello world" 0
+#####################
+# Text font data
+
+: font
+
+  # Ascii 32 - 47: special characters
+
+  0
+  0 0 0 0 0 # Placeholder for end of string
+
+  2
+  0 0 0 0 0 # Space
+
+  2
+  0b10000000 # !
+  0b10000000
+  0b10000000
+  0b00000000
+  0b10000000
+
+  4
+  0b10100000 # "
+  0b10100000
+  0b00000000
+  0b00000000
+  0b00000000
+
+  6
+  0b01010000 # #
+  0b11111000
+  0b01010000
+  0b11111000
+  0b01010000
+
+  6
+  0b01111000 # $
+  0b10100000
+  0b01110000
+  0b00101000
+  0b11110000
+
+  4
+  0b10100000 # %
+  0b00100000
+  0b01000000
+  0b10000000
+  0b10100000
+
+  5
+  0b01000000 # &
+  0b10100000
+  0b01000000
+  0b10100000
+  0b01110000
+
+  2
+  0b10000000 # '
+  0b10000000
+  0b00000000
+  0b00000000
+  0b00000000
+
+  3
+  0b01000000 # (
+  0b10000000
+  0b10000000
+  0b10000000
+  0b01000000
+
+  3
+  0b10000000 # )
+  0b01000000
+  0b01000000
+  0b01000000
+  0b10000000
+
+  6
+  0b00100000 # *
+  0b10101000
+  0b01110000
+  0b10101000
+  0b00100000
+
+  4
+  0b00000000 # +
+  0b01000000
+  0b11100000
+  0b01000000
+  0b00000000
+
+  3
+  0b00000000 # ,
+  0b00000000
+  0b00000000
+  0b01000000
+  0b10000000
+
+  4
+  0b00000000 # -
+  0b00000000
+  0b11100000
+  0b00000000
+  0b00000000
+
+  2
+  0b00000000 # .
+  0b00000000
+  0b00000000
+  0b00000000
+  0b10000000
+
+  4
+  0b00100000 # /
+  0b00100000
+  0b01000000
+  0b10000000
+  0b10000000
+
+
+  # Ascii 48 - 57: Numbers
+
+  5
+  0b01100000 # 0
+  0b10010000
+  0b10010000
+  0b10010000
+  0b01100000
+
+  4
+  0b01000000 # 1
+  0b11000000
+  0b01000000
+  0b01000000
+  0b11100000
+
+  5
+  0b11100000 # 2
+  0b00010000
+  0b01100000
+  0b10000000
+  0b11110000
+
+  5
+  0b11100000 # 3
+  0b00010000
+  0b01100000
+  0b00010000
+  0b11100000
+
+  5
+  0b10000000 # 4
+  0b10010000
+  0b11110000
+  0b00010000
+  0b00010000
+
+  5
+  0b11110000 # 5
+  0b10000000
+  0b11100000
+  0b00010000
+  0b11100000
+
+  5
+  0b01100000 # 6
+  0b10000000
+  0b11100000
+  0b10010000
+  0b01100000
+
+  5
+  0b11110000 # 7
+  0b00010000
+  0b00100000
+  0b01000000
+  0b01000000
+
+  5
+  0b01100000 # 8
+  0b10010000
+  0b01100000
+  0b10010000
+  0b01100000
+
+  5
+  0b01100000 # 9
+  0b10010000
+  0b01110000
+  0b00010000
+  0b01100000
+
+
+  # Ascii 58 - 64: More special characters
+
+  2
+  0b00000000 # :
+  0b10000000
+  0b00000000
+  0b10000000
+  0b00000000
+
+  3
+  0b00000000 # ;
+  0b01000000
+  0b00000000
+  0b01000000
+  0b10000000
+
+  4
+  0b00100000 # <
+  0b01000000
+  0b10000000
+  0b01000000
+  0b00100000
+
+  4
+  0b00000000 # =
+  0b11100000
+  0b00000000
+  0b11100000
+  0b00000000
+
+  4
+  0b10000000 # >
+  0b01000000
+  0b00100000
+  0b01000000
+  0b10000000
+
+  4
+  0b11000000 # ?
+  0b00100000
+  0b01000000
+  0b00000000
+  0b01000000
+
+  5
+  0b01100000 # @
+  0b10010000
+  0b10110000
+  0b10000000
+  0b01100000
+
+
+  # Ascii 65 - 90: Capital letters
+
+  5
+  0b01100000 # A
+  0b10010000
+  0b11110000
+  0b10010000
+  0b10010000
+
+  5
+  0b11100000 # B
+  0b10010000
+  0b11100000
+  0b10010000
+  0b11100000
+
+  5
+  0b01110000 # C
+  0b10000000
+  0b10000000
+  0b10000000
+  0b01110000
+
+  5
+  0b11100000 # D
+  0b10010000
+  0b10010000
+  0b10010000
+  0b11100000
+
+  4
+  0b11100000 # E
+  0b10000000
+  0b11100000
+  0b10000000
+  0b11100000
+
+  4
+  0b11100000 # F
+  0b10000000
+  0b11000000
+  0b10000000
+  0b10000000
+
+  5
+  0b01110000 # G
+  0b10000000
+  0b10110000
+  0b10010000
+  0b01100000
+
+  5
+  0b10010000 # H
+  0b10010000
+  0b11110000
+  0b10010000
+  0b10010000
+
+  4
+  0b11100000 # I
+  0b01000000
+  0b01000000
+  0b01000000
+  0b11100000
+
+  4
+  0b11100000 # J
+  0b00100000
+  0b00100000
+  0b00100000
+  0b11000000
+
+  5
+  0b10010000 # K
+  0b10100000
+  0b11000000
+  0b10100000
+  0b10010000
+
+  4
+  0b10000000 # L
+  0b10000000
+  0b10000000
+  0b10000000
+  0b11100000
+
+  6
+  0b10001000 # M
+  0b11011000
+  0b10101000
+  0b10001000
+  0b10001000
+
+  5
+  0b10010000 # N
+  0b11010000
+  0b11110000
+  0b10110000
+  0b10010000
+
+  5
+  0b01100000 # O
+  0b10010000
+  0b10010000
+  0b10010000
+  0b01100000
+
+  5
+  0b11100000 # P
+  0b10010000
+  0b11100000
+  0b10000000
+  0b10000000
+
+  5
+  0b01100000 # Q
+  0b10010000
+  0b10010000
+  0b10110000
+  0b01110000
+
+  5
+  0b11100000 # R
+  0b10010000
+  0b11100000
+  0b10010000
+  0b10010000
+
+  5
+  0b01110000 # S
+  0b10000000
+  0b01100000
+  0b00010000
+  0b11100000
+
+  6
+  0b11111000 # T
+  0b00100000
+  0b00100000
+  0b00100000
+  0b00100000
+
+  5
+  0b10010000 # U
+  0b10010000
+  0b10010000
+  0b10010000
+  0b01100000
+
+  5
+  0b10010000 # V
+  0b10010000
+  0b10010000
+  0b01100000
+  0b01100000
+
+  6
+  0b10001000 # W
+  0b10001000
+  0b10101000
+  0b11011000
+  0b10001000
+
+  6
+  0b10001000 # X
+  0b01010000
+  0b00100000
+  0b01010000
+  0b10001000
+
+  6
+  0b10001000 # Y
+  0b01010000
+  0b00100000
+  0b00100000
+  0b00100000
+
+  4
+  0b11100000 # Z
+  0b00100000
+  0b01000000
+  0b10000000
+  0b11100000
+
+
+  # Ascii 91 - 96: Even more special characters
+
+  3
+  0b11000000 # [
+  0b10000000
+  0b10000000
+  0b10000000
+  0b11000000
+
+  4
+  0b10000000 # \
+  0b10000000
+  0b01000000
+  0b00100000
+  0b00100000
+
+  3
+  0b11000000 # ]
+  0b01000000
+  0b01000000
+  0b01000000
+  0b11000000
+
+  4
+  0b01000000 # ^
+  0b10100000
+  0b00000000
+  0b00000000
+  0b00000000
+
+  4
+  0b00000000 # _
+  0b00000000
+  0b00000000
+  0b00000000
+  0b11100000
+
+  3
+  0b10000000 # `
+  0b01000000
+  0b00000000
+  0b00000000
+  0b00000000
+
+
+  # Ascii 97 - 122: Lower case letters
+
+  4
+  0b00000000 # a
+  0b01100000
+  0b10100000
+  0b10100000
+  0b01100000
+
+  4
+  0b10000000 # b
+  0b10000000
+  0b11000000
+  0b10100000
+  0b11000000
+
+  4
+  0b00000000 # c
+  0b01100000
+  0b10000000
+  0b10000000
+  0b01100000
+
+  4
+  0b00100000 # d
+  0b00100000
+  0b01100000
+  0b10100000
+  0b01100000
+
+  4
+  0b00000000 # e
+  0b01000000
+  0b10100000
+  0b11000000
+  0b01100000
+
+  3
+  0b01000000 # f
+  0b10000000
+  0b11000000
+  0b10000000
+  0b10000000
+
+  4
+  0b00000000 # g
+  0b01100000
+  0b10100000
+  0b01100000
+  0b11000000
+
+  4
+  0b10000000 # h
+  0b10000000
+  0b11000000
+  0b10100000
+  0b10100000
+
+  2
+  0b10000000 # i
+  0b00000000
+  0b10000000
+  0b10000000
+  0b10000000
+
+  3
+  0b01000000 # j
+  0b00000000
+  0b01000000
+  0b01000000
+  0b10000000
+
+  4
+  0b10000000 # k
+  0b10000000
+  0b10100000
+  0b11000000
+  0b10100000
+
+  3
+  0b11000000 # l
+  0b01000000
+  0b01000000
+  0b01000000
+  0b01000000
+
+  4
+  0b00000000 # m
+  0b10100000
+  0b11100000
+  0b10100000
+  0b10100000
+
+  4
+  0b00000000 # n
+  0b11000000
+  0b10100000
+  0b10100000
+  0b10100000
+
+  4
+  0b00000000 # o
+  0b01000000
+  0b10100000
+  0b10100000
+  0b01000000
+
+  4
+  0b00000000 # P
+  0b11000000
+  0b10100000
+  0b11000000
+  0b10000000
+
+  4
+  0b00000000 # q
+  0b01100000
+  0b10100000
+  0b01100000
+  0b00100000
+
+  4
+  0b00000000 # r
+  0b10100000
+  0b11000000
+  0b10000000
+  0b10000000
+
+  3
+  0b00000000 # s
+  0b01000000
+  0b10000000
+  0b01000000
+  0b10000000
+
+  3
+  0b10000000 # t
+  0b10000000
+  0b11000000
+  0b10000000
+  0b01000000
+
+  4
+  0b00000000 # u
+  0b10100000
+  0b10100000
+  0b10100000
+  0b01000000
+
+  4
+  0b00000000 # v
+  0b10100000
+  0b10100000
+  0b01000000
+  0b01000000
+
+  4
+  0b00000000 # w
+  0b10100000
+  0b10100000
+  0b11100000
+  0b10100000
+
+  4
+  0b00000000 # x
+  0b10100000
+  0b01000000
+  0b01000000
+  0b10100000
+
+  4
+  0b00000000 # y
+  0b10100000
+  0b10100000
+  0b01000000
+  0b10000000
+
+  3
+  0b00000000 # z
+  0b11000000
+  0b01000000
+  0b10000000
+  0b11000000
+
+  # Ascii 123 - 126: Even more characters
+
+  4
+  0b01100000 # {
+  0b01000000
+  0b10000000
+  0b01000000
+  0b01100000
+
+  2
+  0b10000000 # |
+  0b10000000
+  0b10000000
+  0b10000000
+  0b10000000
+
+  4
+  0b11000000 # }
+  0b01000000
+  0b00100000
+  0b01000000
+  0b11000000
+
+  5
+  0b00000000
+  0b01010000 # ~
+  0b10100000
+  0b00000000
   0b00000000
 
 : hall-0+0+0
@@ -2195,4 +1891,1059 @@
   pointer wall-2-4+48+0   # leaf 11
   pointer wall-2-5+48+0   # leaf 12
   pointer wall-2-6+48+0   # leaf 13
+#####################
+# Musical accompaniment
+
+:const c-note    0
+:const c-repeat  1
+:const c-da-capo 2
+:const c-stop    3
+
+# Convenience macros
+
+:macro note ADDRESS DURATION {
+  :byte { ADDRESS >> 8 }
+  :byte { ADDRESS }
+  :byte c-note
+  :byte { DURATION }
+}
+
+:macro rest DURATION {
+  :byte { --- >> 8 }
+  :byte { --- }
+  :byte c-note
+  :byte { DURATION }
+}
+
+:macro repeat TIMES LABEL {
+  :byte { TIMES - 1 }
+  :byte { TIMES - 1 }
+  :byte c-repeat
+  :byte { ( ( HERE - LABEL ) / 4 ) + 1 }
+}
+
+:macro da-capo {
+  :byte 0
+  :byte 0
+  :byte c-da-capo
+  :byte 0
+}
+
+:macro stop {
+  :byte 0
+  :byte 0
+  :byte c-stop
+  :byte 0
+}
+
+# Available samples
+
+: A$1 0xFF 0xFF 0xFF 0xFF 0xE0 0x00 0x00 0x00 0x07 0xFF 0xFF 0xFF 0xFE 0x00 0x00 0x00
+: C-2 0xFF 0xFF 0xFF 0xFE 0x00 0x00 0x00 0x03 0xFF 0xFF 0xFF 0xF0 0x00 0x00 0x00 0x1F
+: C$2 0xFF 0xFF 0xFF 0xF8 0x00 0x00 0x00 0x3F 0xFF 0xFF 0xFE 0x00 0x00 0x00 0x0F 0xFF
+: D-2 0xFF 0xFF 0xFF 0xF0 0x00 0x00 0x01 0xFF 0xFF 0xFF 0xC0 0x00 0x00 0x07 0xFF 0xFF
+: D$2 0xFF 0xFF 0xFF 0xC0 0x00 0x00 0x0F 0xFF 0xFF 0xFC 0x00 0x00 0x01 0xFF 0xFF 0xFF
+: E-2 0xFF 0xFF 0xFF 0x80 0x00 0x00 0x7F 0xFF 0xFF 0x80 0x00 0x00 0x3F 0xFF 0xFF 0xC0
+: F-2 0xFF 0xFF 0xFE 0x00 0x00 0x03 0xFF 0xFF 0xF8 0x00 0x00 0x0F 0xFF 0xFF 0xE0 0x00
+: F$2 0xFF 0xFF 0xFC 0x00 0x00 0x0F 0xFF 0xFF 0x80 0x00 0x01 0xFF 0xFF 0xF8 0x00 0x00
+: G-2 0xFF 0xFF 0xF8 0x00 0x00 0x7F 0xFF 0xFC 0x00 0x00 0x3F 0xFF 0xFE 0x00 0x00 0x1F
+: A$2 0xFF 0xFF 0xC0 0x00 0x1F 0xFF 0xF0 0x00 0x07 0xFF 0xFC 0x00 0x00 0xFF 0xFF 0x80
+: C-3 0xFF 0xFF 0x00 0x01 0xFF 0xFC 0x00 0x03 0xFF 0xF8 0x00 0x0F 0xFF 0xF0 0x00 0x1F
+: G-5 0xE3 0x18 0xC6 0x39 0xCE 0x73 0x8C 0x63 0x18 0xC7 0x39 0xCE 0x71 0x8C 0x63 0x1C
+: F-5 0xE3 0x8E 0x39 0xC7 0x1C 0x63 0x8E 0x38 0xC7 0x1C 0x73 0x8E 0x38 0xE7 0x1C 0x71
+: E-5 0xF1 0xC7 0x1C 0x71 0xC7 0x1C 0x71 0xC7 0x1C 0x71 0xC7 0x8E 0x38 0xE3 0x8E 0x38
+: D-5 0xF1 0xE3 0xC7 0x0E 0x1C 0x78 0xF1 0xC3 0x87 0x1E 0x3C 0x70 0xE1 0xC3 0x8F 0x1E
+: C-5 0xF0 0xF0 0xF1 0xE1 0xE1 0xE3 0xC3 0xC3 0xC7 0x87 0x87 0x0F 0x0F 0x0E 0x1E 0x1E
+: B-4 0xF8 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x78 0x7C 0x3C 0x3C 0x3C 0x3C 0x3C # 494hz
+: A$4 0xF8 0x78 0x3C 0x3E 0x1E 0x1F 0x0F 0x07 0x87 0x83 0xC3 0xE1 0xE0 0xF0 0xF0 0x78 # 466hz
+: G$4 0xF8 0x3E 0x0F 0x87 0xC1 0xF0 0x7C 0x3E 0x0F 0x83 0xC1 0xF0 0x7C 0x1E 0x0F 0x83 # 415hz
+: D$4 0xFE 0x07 0xF0 0x3F 0x81 0xFC 0x0F 0xC0 0x7E 0x03 0xF0 0x1F 0x81 0xFC 0x0F 0xE0 # 311hz
+: D-4 0xFE 0x03 0xF8 0x0F 0xE0 0x7F 0x01 0xFC 0x07 0xF0 0x3F 0x80 0xFE 0x03 0xF8 0x1F # 293hz
+: C$4 0xFF 0x01 0xFC 0x07 0xF8 0x0F 0xE0 0x3F 0x80 0x7F 0x01 0xFC 0x03 0xF8 0x0F 0xE0 # 277hz
+: C-4 0xFF 0x00 0xFE 0x01 0xFE 0x03 0xFC 0x03 0xF8 0x07 0xF0 0x0F 0xF0 0x1F 0xE0 0x1F # 262hz
+: F-4 0xFC 0x0F 0xC1 0xF8 0x1F 0x83 0xF0 0x3F 0x07 0xE0 0x7C 0x0F 0xC0 0xF8 0x1F 0x81
+
+: --- 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 # silence
+
+: click 0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00
+
+# Songs
+
+: knee-deep-in-trouble
+
+: kdt1   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt1
+: kdt2   note C-2 10  rest 10  note D$2 10  rest 10  note G-2 10  rest 10  note C-3 10  rest 10  repeat 2 kdt2
+: kdt3   note A$1 10  rest 10  note D-2 10  rest 10  note F-2 10  rest 10  note A$2 10  rest 10  repeat 2 kdt3
+: kdt4   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt4
+: kdt5   note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt5
+: kdt6   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt6
+: kdt7   note C-3 10  rest 10  note G-2 10  rest 10  note D$2 10  rest 10  note C-2 10  rest 10  repeat 2 kdt7
+: kdt8   note A$2 10  rest 10  note F-2 10  rest 10  note D-2 10  rest 10  note A$1 10  rest 10  repeat 2 kdt8
+: kdt9   note C-2 10  rest 10  note G-2 10  rest 10  note A$1 10  rest 10  note F-2 10  rest 10  repeat 4 kdt9
+: kdt10  note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt10
+         da-capo
+
+: victory-1
+
+  note D-4 4   rest 4      note G$4 4   rest 4      note A$4 4   rest 4
+  note E-5 5   note F-5 5  note E-5 5   note F-5 5  note E-5 5   rest 15
+  note F-4 4   rest 4      note C-5 4   rest 4      note D-5 4   rest 4
+  note F-5 5   note G-5 5  note F-5 5   note G-5 5  note F-5 5   rest 15
+  note G-5 10  rest 10     note G-5 12  rest 10     note F-5 14  rest 10
+  note G-5 40  rest 10
+  stop
+
+: victory-2
+
+  note D-4 10  rest 4  note G$4 4  rest 4  note B-4 20  rest 8
+  stop
+
+:org 0x202
+
+#####################
+# 3D Viper Maze
+# An Octojam 7 entry
+# By Timendus
+# https://github.com/Timendus/3d-viper-maze
+
+# main
+  lores
+  plane 3
+  title-screen
+
+  # Start with training map
+  :unpack 0 training1
+  select-map
+  start-map
+
+: main-redraw
+  clear
+  render-3d
+  mark-screen-clean
+: main-loop
+  check-keys
+  clock-tick
+  i := long dirty    # Is the screen dirty?
+  load v0
+  if v0 == 1 then jump main-redraw
+  jump main-loop
+
+# Handle those things that need attention in parallel to gameplay,
+# like sound and enemy movement
+: clock-tick
+  play-music
+  return
+
+# Mark the screen dirty or clean to manage redraws
+
+: mark-screen-dirty
+  i := long dirty
+  v0 := 1
+  save v0
+  return
+
+: mark-screen-clean
+  i := long dirty
+  v0 := 0
+  save v0
+  return
+
+#####################
+# Transition screens and animations
+
+: death-by-snake-animation
+  # TODO: animate snake ;)
+  play-click
+  v0 := 10
+  loop
+    scroll-up 1
+    v1 := 10
+    delay := v1
+    loop
+      v1 := delay
+      while v1 != 0
+    again
+    v0 -= 1
+    while v0 != 0
+  again
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  clear
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  return
+
+: title-screen
+  # Select background music
+  unpack-long knee-deep-in-trouble
+  select-song
+  # Render this image
+  i := long title-screen+0+0
+  bitmap-to-screen
+  # And wait for a key press
+  wait-key-release
+  jump wait-key-press
+
+: map-victory-screen
+  # Select background music
+  unpack-long knee-deep-in-trouble
+  select-song
+  # Select immediate sound effect
+  unpack-long victory-1
+  interject-song
+  # Render this image
+  i := long map-victory+0+0
+  bitmap-to-screen
+  # And wait for a key press
+  wait-key-release
+  jump wait-key-press
+
+: bitmap-to-screen
+  clear
+  v0 := 0
+: bitmap-to-screen-loop
+  v1 := 0
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v1 := 16
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v0 += 16
+  if v0 != 64 then jump bitmap-to-screen-loop
+  return
+#####################
+# Look at place (v3 - 1, v4) relative to the player
+# Return value at that position in v0
+: look-ahead
+  i := long player
+  load v2
+  if v2 == 0 then jump look-ahead-up
+  if v2 == 1 then jump look-ahead-right
+  if v2 == 2 then jump look-ahead-down
+  # Else fall through
+: look-ahead-left
+  v0 -= v4
+  v1 += 1
+  v1 -= v3
+  jump map-get
+: look-ahead-right
+  v0 += v4
+  v1 -= 1
+  v1 += v3
+  jump map-get
+: look-ahead-up
+  v0 -= 1
+  v0 += v3
+  v1 -= v4
+  jump map-get
+: look-ahead-down
+  v0 += 1
+  v0 -= v3
+  v1 += v4
+  jump map-get
+
+#####################
+# Query the map for the value at a given position
+# Input: X in v0, Y in v1 (destructive)
+# Output: map value in v0
+: map-get
+  map-point
+  load v0
+  return
+
+# Input: X in v0, Y in v1 (destructive)
+# Output: i points to right place on map
+# Destroys v0, v1, v2, v3
+: map-point
+  v2 := v0
+  v3 := v1
+  map-start
+  i += v2
+  v3 <<= v3
+  v3 <<= v3
+  v3 <<= v3
+  v3 <<= v3
+  i += v3
+  return
+
+# Destroys v0, v1
+: map-start
+  i := long current-map
+  load v1
+  i := map-point-smc
+  save v1
+  0xF0 0x00 # i := long ...
+  : map-point-smc
+  0 0
+  return
+
+# Destroys v0, v1
+: map-metadata-start
+  map-start
+  v0 := 128
+  i += v0
+  return
+
+#####################
+# Map switching routines
+# `select-map` loads the right map and player position
+# `start-map` starts the matching soundtrack
+
+# Input: Address of map 'unpacked' in v0 and v1
+: select-map
+  # Make new map the current map
+  i := long current-map
+  save v1
+  # Fall through
+
+: send-player-back-to-start
+  v4 := 0
+  v5 := 0
+: select-map-loop
+  v0 := v4
+  v1 := v5
+  map-get
+  if v0 == 0x02 then jump select-map-start-found
+  v4 += 1
+  if v4 != 7 then jump select-map-loop
+  v4 := 0
+  v5 += 1
+  jump select-map-loop
+: select-map-start-found
+  # Put the player in the start position (direction is fixed)
+  i := long player
+  v0 := v4
+  v1 := v5
+  v2 := 1
+  save v2
+  return
+
+# Input: none
+: start-map
+  # Load the map's soundtrack from the meta-data and select it
+  map-metadata-start
+  load v1
+  select-song
+  return
+#####################
+# Render the map to the screen in pseudo-3D
+# (for the actual gameplay)
+: render-3d
+  column-two
+    clock-tick
+  column-three
+    clock-tick
+  foreground
+    clock-tick
+  column-one
+    clock-tick
+  column-four
+    clock-tick
+  return
+
+: column-one
+  i := long nodes-column-one
+  find-sprite
+  v0 := 0
+  jump render-column
+
+: column-two
+  i := long nodes-column-two
+  find-sprite
+  v0 := 16
+  jump render-column
+
+: column-three
+  i := long nodes-column-three
+  find-sprite
+  v0 := 32
+  jump render-column
+
+: column-four
+  i := long nodes-column-four
+  find-sprite
+  v0 := 48
+  # Fall through
+
+: render-column
+  v1 := 0
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v1 := 16
+  sprite v0 v1 0
+  return
+
+: foreground
+  v4 := 1
+  foreground-look
+  if v0 == 1 then return # We can't see through walls
+  if v0 == 3 then jump finish-near
+  if v0 == 4 then jump button-near
+  if v0 == 5 then jump viper-near
+: foreground-far
+  v4 := 2
+  foreground-look
+  if v0 == 3 then jump finish-far
+  if v0 == 4 then jump button-far
+  if v0 == 5 then jump viper-far
+  return
+
+: foreground-look
+  v3 := 1
+  look-ahead
+  v1 := 0x07
+  v0 &= v1
+  return
+
+: finish-far   i := long sprites+32+16  foreground-draw  return
+: finish-near  i := long sprites+48+0   foreground-draw  jump foreground-far
+: button-far   i := long sprites+0+16   foreground-draw  return
+: button-near  i := long sprites+0+0    foreground-draw  jump foreground-far
+: viper-far    i := long sprites+32+0   foreground-draw  return
+: viper-near   i := long sprites+16+16  foreground-draw  jump foreground-far
+
+: foreground-draw
+  v0 := 24
+  v1 := 16
+  sprite v0 v1 0
+  return
+
+#####################
+# This routine walks through the binary tree with nodes and leafs
+# Input: i pointing to a node
+# Output: i pointing to the image to be rendered
+: find-sprite
+  # Load this node and find what's there
+  load v2
+  v5 := v1
+  v6 := v2
+  # Coordinates are stored together in first byte, so unpack
+  v1 := 0x0F
+  v4 := v0
+  v4 &= v1
+  v0 >>= v0
+  v0 >>= v0
+  v0 >>= v0
+  v0 >>= v0
+  v0 &= v1
+  v3 := v0
+  look-ahead
+  # Did we encounter a wall?
+  if v0 == 1 begin
+    v0 := v6
+  else
+    v0 := v5
+  end
+  # Is the next step a node or a leaf?
+  v1 := 0x80
+  v2 := v0
+  v2 &= v1
+  if v2 == 0x80 begin
+    # Next is a leaf, extract the pointer
+    i := long leafs
+    v1 := 0b01111111
+    v0 &= v1 # AND out the leaf indicator bit
+    v0 <<= v0
+    i += v0
+    load v1
+    # We now have the address of the leaf image in v0 and v1
+    # Use self-modifying code trick to (long) load this address in `i`:
+    i := find-sprite-smc
+    save v1
+    0xF0 0x00 # i := long ...
+: find-sprite-smc
+    0 0
+    return
+  else
+    # Next is a node, load it and restart
+    i := long nodes
+    i += v0
+    i += v0
+    i += v0
+    jump find-sprite
+  end
+#####################
+# Show the map on screen (top down) with a blinking player position
+# (as an in-game help and for debugging)
+# Pressing Q exits the mini map and returns to normal gameplay
+: mini-map
+  clear
+  play-click
+  render-map
+: mini-map-loop
+  render-player
+  v0 := 20
+  delay := v0
+: mini-map-delay-loop
+  v0 := OCTO_KEY_Q
+  if v0 key then jump exit-from-map
+  v0 := delay
+  if v0 == 0 then jump mini-map-loop
+  jump mini-map-delay-loop
+
+: render-map
+  :alias X v6
+  :alias Y v7
+  X := 0
+  Y := 0
+: render-map-loop
+  # Look up value at X,Y
+  v0 := X
+  v1 := Y
+  map-get
+  # Don't show tile if its still hidden
+  v1 := 0b00001000
+  v1 &= v0
+  if v1 != 0 then v0 := 0
+  # Mask out three relevant bits
+  v1 := 0x07
+  v0 &= v1
+  # Get pointer to right sprite
+  # Sprites are 8 bytes, so sprite = tiles + map value * 4
+  i := long top-down-tiles
+  v0 <<= v0
+  v0 <<= v0
+  v0 <<= v0
+  i += v0
+  # Get coordinates in display space (x4)
+  v4 := X
+  v4 <<= v4
+  v4 <<= v4
+  v5 := Y
+  v5 <<= v5
+  v5 <<= v5
+  # Render
+  sprite v4 v5 4
+  X += 1
+  if X < 16 then jump render-map-loop
+  # Next row
+  X := 0
+  Y += 1
+  if Y < 8 then jump render-map-loop
+  # Done
+  return
+
+: render-player
+  # Get player properties
+  i := long player
+  load v2
+  # Get coordinates in display space (x4)
+  v0 <<= v0
+  v0 <<= v0
+  v1 <<= v1
+  v1 <<= v1
+  # Get pointer to right sprite (direction x 8)
+  i := long player-tile
+  v2 <<= v2
+  v2 <<= v2
+  v2 <<= v2
+  i += v2
+  # Render
+  sprite v0 v1 4
+  return
+
+: exit-from-map
+  play-click
+  v0 := OCTO_KEY_Q
+  if v0 key then jump exit-from-map
+  mark-screen-dirty
+  return
+#####################
+# Text rendering routines
+# This needs a bit of work...
+
+: print-hello-world
+  plane 1
+  v1 := 0
+: print-hello-world-loop
+  i := long string-hello-world
+  draw-next-char
+  if v0 != 0 then jump print-hello-world-loop
+  plane 3
+  return
+
+#: print-text2
+#  plane 1
+#  v1 := 0
+#: print-text2-loop
+#  i := long text2
+#  draw-next-char
+#  if v0 != 0 then jump print-text2-loop
+#  plane 3
+#  return
+
+
+: draw-next-char
+  i += v1
+  load v0
+  if v0 == 0 then return
+  i := long font
+  v0 <<= v0
+  i += v0
+  i += v0
+  i += v0
+  load v0
+  sprite v3 v4 5
+  v3 += v0
+  v1 += 1
+  return
+#####################
+# A non-blocking music player
+# `play-music` needs to be called at a reasonable frequency to keep the melody
+# going. Also, it hogs the buzzer and delay special registers. So if you need to
+# use those, stop calling this routine and reset the buzzer to zero.
+
+# Input: none
+: play-click
+  i := long click
+  v0 := 5
+  audio
+  buzzer := v0
+  return
+
+# Input: 'unpacked' address of song in v0 and v1
+: select-song # and return to position 0
+  i := long current-song
+  v2 := 0
+  save v2
+  # Clear any old backup songs
+  v0 := 0
+  v1 := 0
+  i := long current-song-backup
+  save v1
+  return
+
+# Input: 'unpacked' address of song in v0 and v1
+: interject-song # and resume playing afterwards
+  v3 := v0
+  v4 := v1
+  # Check if we're already in an interjected song (can't do two)
+  i := long current-song-backup
+  load v1
+  v0 |= v1
+  if v0 != 0 then jump interject-song-leave-backup-untouched
+  # Swap current song to backup and new song to current
+  i := long current-song
+  load v2
+  i := long current-song-backup
+  save v2
+: interject-song-leave-backup-untouched
+  v0 := v3
+  v1 := v4
+  v2 := 0
+  i := long current-song
+  save v2
+  # Force `play-music` to start the new song right away
+  delay := v2
+  return
+
+# Input: none
+# Destroys: v0 - v4
+: play-music
+  # Is the last note finished?
+  v0 := delay
+  if v0 != 0 then return
+
+  # Load and update our position in the song
+  i := long music-position
+  load v0
+  v4 := v0
+  v0 += 1
+  i := long music-position
+  save v0
+
+  # Load the next music instruction
+  music-pointer
+  load v3
+
+  if v2 == c-note   then jump music-note
+  if v2 == c-repeat then jump music-repeat
+  if v2 == c-stop   then jump music-stop
+  # Else, it's a da capo
+
+: music-da-capo
+  v0 := 0
+  i := long music-position
+  save v0
+  return
+
+: music-note
+  i := music-smc
+  save v1
+  0xF0 0x00 # i := long ...
+: music-smc
+  0 0
+  # Play the sound!
+  audio
+  delay := v3
+  vf := 255
+  buzzer := vf
+  return
+
+: music-repeat
+  v5 := v0
+  v6 := v1
+  music-pointer
+  if v5 == 0 begin
+    # We've done all the repetitions, reset for the next playthrough
+    v0 := v6
+    save v0
+  else
+    # Decrease the loop counter
+    v0 := v5
+    v0 -= 1
+    save v0
+
+    # Move the position back as many steps as the instruction dictates
+    i := long music-position
+    load v0
+    v0 -= v3
+    i := long music-position
+    save v0
+  end
+  jump play-music
+
+: music-stop
+  # Do we have anything left in backup to play?
+  i := long current-song-backup
+  load v2
+  v3 := v0
+  v3 |= v1
+  if v3 != 0 begin
+    i := long current-song
+    save v2
+    v0 := 0
+    v1 := 0
+    i := long current-song-backup
+    save v1
+    return
+  else
+    # Step back one position so we don't play anything anymore
+    i := long music-position
+    load v0
+    v0 -= 1
+    i := long music-position
+    save v0
+  end
+  return
+
+: music-pointer
+  i := long current-song
+  load v1
+  i := music-pointer-smc
+  save v1
+  0xF0 0x00  # i := long ...
+: music-pointer-smc
+  0 0
+  i += v4
+  i += v4
+  i += v4
+  i += v4
+  return
+#####################
+# Non-blocking key input check
+# Updates the player data on input, checks for collisions
+# Destroys v0 - v3
+: check-keys
+  i := long player
+  load v2
+
+  # Show mini map
+  v0 := OCTO_KEY_Q
+  if v0 key then jump mini-map
+
+  # Rotation
+  v0 := OCTO_KEY_A
+  if v0 key then jump rotate-left
+  v0 := OCTO_KEY_D
+  if v0 key then jump rotate-right
+
+  # Movement
+  if v2 == 0 then jump going-up
+  if v2 == 1 then jump going-right
+  if v2 == 2 then jump going-down
+  # Else fall through:
+
+: going-left
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-left
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-right
+  return
+: going-up
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-up
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-down
+  return
+: going-right
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-right
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-left
+  return
+: going-down
+  v0 := OCTO_KEY_W
+  if v0 key then jump move-down
+  v0 := OCTO_KEY_S
+  if v0 key then jump move-up
+  return
+
+: rotate-left
+  v0 := 3
+  v2 -= 1
+  v0 &= v2
+  i := long player-orientation
+  save v0
+  mark-screen-dirty
+  jump wait-key-release
+: rotate-right
+  v0 := 3
+  v2 += 1
+  v0 &= v2
+  i := long player-orientation
+  save v0
+  mark-screen-dirty
+  jump wait-key-release
+: move-right
+  i := long player
+  load v1
+  v2 := 15
+  v0 += 1
+  v0 &= v2
+  jump collide-or-save
+: move-left
+  i := long player
+  load v1
+  v2 := 15
+  v0 -= 1
+  v0 &= v2
+  jump collide-or-save
+: move-up
+  i := long player
+  load v1
+  v2 := 7
+  v1 -= 1
+  v1 &= v2
+  jump collide-or-save
+: move-down
+  i := long player
+  load v1
+  v2 := 7
+  v1 += 1
+  v1 &= v2
+  # Fall through
+
+: collide-or-save
+  # Backup position
+  v4 := v0
+  v5 := v1
+  # Is there a wall at this position?
+  map-get
+  if v0 == 1 then jump wait-key-release
+  # Otherwise, update position
+  v1 := v5
+  v3 := v0 # save v0 for check-triggers
+  v0 := v4
+  i := long player
+  save v1
+  check-triggers
+  mark-screen-dirty
+  # Fall through
+
+: wait-key-release
+  clock-tick
+  v0 := OCTO_KEY_W
+  if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_A
+  if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_S
+  if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_D
+  if v0 key then jump wait-key-release
+  return
+
+: check-triggers
+  # Did we hit a trigger tile?
+  v0 := 0xF0
+  v3 &= v0
+  if v3 == 0 then return
+  v3 >>= v3
+  v3 >>= v3
+  v3 >>= v3
+  map-metadata-start
+  i += v3
+  load v1
+  i := check-triggers-smc
+  v2 := 0x10
+  v0 |= v2
+  save v1
+: check-triggers-smc
+  0 0
+
+# Blocking "press any key" routine
+# (does play music though)
+# Returns pressed key in v5
+: wait-key-press
+  v5 := 0
+: wait-key-press-loop
+  play-music
+  if v5 key then return
+  v5 += 1
+  if v5 != 16 then jump wait-key-press-loop
+  jump wait-key-press
+#####################
+# Trigger routines
+
+:macro open-wall X Y {
+  v0 := X
+  v1 := Y
+  map-point
+  v0 := 0
+  save v0
+}
+
+:macro close-wall X Y {
+  v0 := X
+  v1 := Y
+  map-point
+  v0 := 1
+  save v0
+}
+
+:macro make-visible X Y {
+  v0 := X
+  v1 := Y
+  map-get
+  v4 := v0
+  v0 := X
+  v1 := Y
+  map-point
+  v0 := 0b11110111
+  v0 &= v4
+  save v0
+}
+
+: map1-button1
+  open-wall 4 3
+  make-visible 2 6
+  unpack-long victory-2
+  jump interject-song
+
+: map1-snake1
+  make-visible 5 4
+  death-by-snake-animation
+  send-player-back-to-start
+  jump start-map
+
+: finish-map1
+  map-victory-screen
+  :unpack 0 map2
+  select-map
+  jump start-map
+
+: finish-training1
+  map-victory-screen
+  :unpack 0 training2
+  select-map
+  jump start-map
+
+: training2-button1
+  open-wall 9 4
+  make-visible 7 6
+  unpack-long victory-2
+  jump interject-song
+
+: finish-training2
+  map-victory-screen
+  :unpack 0 map1
+  select-map
+  jump start-map
+
+: map2-button1
+  make-visible 3 1
+  unpack-long victory-2
+  jump interject-song
+#####################
+# Level definitions
+# First nibble is a trigger (or zero for no trigger)
+# Second nibble is what it should look like, MSB == 1 for invisible on mini-map
+
+: training1
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x00 0x13 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+
+  # Soundtrack
+  pointer knee-deep-in-trouble
+
+  # Triggers
+  pointer finish-training1
+
+: training2
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x01 0x23 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x1C 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+
+  # Soundtrack
+  pointer knee-deep-in-trouble
+
+  # Triggers
+  pointer training2-button1
+  pointer finish-training2
+
+: map1
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x02 0x00 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x00 0x01
+  0x01 0x01 0x01 0x00 0x01 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x01 0x00 0x01 0x01
+  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x01
+  0x01 0x01 0x00 0x01 0x01 0x2D 0x00 0x01 0x01 0x01 0x00 0x01 0x01 0x00 0x00 0x01
+  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01
+  0x01 0x01 0x1C 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x33 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+
+  # Soundtrack
+  pointer knee-deep-in-trouble
+
+  # Triggers
+  pointer map1-button1  # trigger 1
+  pointer map1-snake1   # trigger 2
+  pointer finish-map1   # trigger 3
+
+: map2
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x02 0x00 0x1C 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x00 0x00 0x01
+  0x01 0x01 0x01 0x01 0x01 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x01 0x00 0x01 0x01
+  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x01
+  0x01 0x01 0x00 0x01 0x01 0x81 0x00 0x01 0x01 0x01 0x00 0x01 0x01 0x00 0x00 0x01
+  0x01 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01
+  0x01 0x01 0x80 0x01 0x01 0x00 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x00 0x82 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+
+  # Soundtrack
+  pointer knee-deep-in-trouble
+
+  # Triggers
+  pointer map2-button1
 # That's all folks!
