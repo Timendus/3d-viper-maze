@@ -1,6 +1,3 @@
-
-: main
-  jump 0x0202
 :org 0x1000
 
 :macro pointer ADDRESS {
@@ -14,6 +11,9 @@
   v0 := hi
   v1 := lo
 }
+
+:alias music-delay vD
+:alias text-delay vE
 #####################
 # Game state
 
@@ -36,6 +36,13 @@
 
 : current-map
   0 0
+
+: current-text
+  0 0
+: text-visible
+  0
+: current-text-line
+  0
 #####################
 # Tiles for the mini-map
 
@@ -155,12 +162,37 @@
 #####################
 # String data
 
+:const blinking   0
+:const sequential 1
+
 :stringmode ascii "\0 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" {
   :byte { VALUE }
 }
+:macro part STR {
+  ascii STR 0
+}
+:macro blinking-string STR {
+  :byte blinking
+  ascii STR 0
+}
+:macro sequential-string NUM {
+  :byte sequential
+  :byte { NUM }
+}
 
-: string-hello-world
-  ascii "Hello world" 0
+: string-press-any-key
+  blinking-string "Press any key!"
+
+: string-you-hear-slithering
+  sequential-string 2
+  part "You  hear"
+  part " slithering"
+
+: string-button-pressed
+  sequential-string 3
+  part "The button"
+  part "made the"
+  part "walls move!"
 #####################
 # Text font data
 
@@ -1998,7 +2030,7 @@
   note D-4 10  rest 4  note G$4 4  rest 4  note B-4 20  rest 8
   stop
 
-:org 0x202
+:org 0x200
 
 #####################
 # 3D Viper Maze
@@ -2006,9 +2038,17 @@
 # By Timendus
 # https://github.com/Timendus/3d-viper-maze
 
-# main
+: main
   lores
   plane 3
+
+  # Prepare virtual timers
+  music-delay := 1
+  text-delay := 1
+  v0 := 1
+  delay := v0
+
+  # Welcome the user!
   title-screen
 
   # Start with training map
@@ -2029,9 +2069,17 @@
   jump main-loop
 
 # Handle those things that need attention in parallel to gameplay,
-# like sound and enemy movement
+# like sound and enemy movement. A virtual timer implementation in the upper
+# registers.
 : clock-tick
-  play-music
+  v0 := delay
+  if v0 != 0 then return
+  music-delay -= 1
+  text-delay -= 1
+  if music-delay == 0 then play-music
+  if text-delay == 0 then show-text
+  v0 := 1
+  delay := v0
   return
 
 # Mark the screen dirty or clean to manage redraws
@@ -2088,11 +2136,18 @@
   # Render this image
   i := long title-screen+0+0
   bitmap-to-screen
+  # Blink text
+  unpack-long string-press-any-key
+  select-text
+  set-text-visible
   # And wait for a key press
   wait-key-release
-  jump wait-key-press
+  wait-key-press
+  set-text-invisible
+  jump wait-key-release
 
 : map-victory-screen
+  set-text-invisible
   # Select background music
   unpack-long knee-deep-in-trouble
   select-song
@@ -2102,9 +2157,15 @@
   # Render this image
   i := long map-victory+0+0
   bitmap-to-screen
+  # Blink text
+  unpack-long string-press-any-key
+  select-text
+  set-text-visible
   # And wait for a key press
   wait-key-release
-  jump wait-key-press
+  wait-key-press
+  set-text-invisible
+  jump wait-key-release
 
 : bitmap-to-screen
   clear
@@ -2461,29 +2522,117 @@
   return
 #####################
 # Text rendering routines
-# This needs a bit of work...
+# `show-text` needs to be called again after 'text-delay' timer ticks.
 
-: print-hello-world
-  plane 1
-  v1 := 0
-: print-hello-world-loop
-  i := long string-hello-world
-  draw-next-char
-  if v0 != 0 then jump print-hello-world-loop
-  plane 3
+# Input: Address of a string 'unpacked' into v0 and v1
+: select-text
+  i := long current-text
+  save v1
+  v0 := 0
+  i := long current-text-line
+  save v0
   return
 
-#: print-text2
-#  plane 1
-#  v1 := 0
-#: print-text2-loop
-#  i := long text2
-#  draw-next-char
-#  if v0 != 0 then jump print-text2-loop
-#  plane 3
-#  return
+# Input: none
+# Destroys: v0
+: set-text-visible
+  text-delay := 1
+  v0 := 1
+  jump set-text-visibility
 
+# Input: none
+# Destroys: v0
+: set-text-invisible
+  v0 := 0
+: set-text-visibility
+  i := long text-visible
+  save v0
+  return
 
+# Destroys: v0 - v4
+: show-text
+  :monitor string-you-hear-slithering 20
+  :monitor current-text-line 1
+  i := long text-visible
+  load v0
+  if v0 == 0 then return
+  load-current-text
+  load v1
+  if v0 == sequential then jump sequential-text
+  # Else it's blinking, fall through
+
+: blinking-text
+  plane 1
+  v2 := 1
+  v3 := 15 # X
+  v4 := 26 # Y
+: show-text-loop
+  load-current-text
+  v1 := v2
+  draw-next-char
+  v2 += 1
+  if v0 != 0 then jump show-text-loop
+  plane 3
+  text-delay := 30
+  return
+
+: sequential-text
+  i := long current-text-line
+  load v0
+
+  # v0 == current line
+  # v1 == max line
+  plane 2
+  if v0 > v1 then jump text-done
+  if v0 == 0 begin
+    # Draw first line
+    draw-current-text
+    select-next-line
+    jump text-done
+  end
+  if v0 == v1 begin
+    # Erase last line
+    select-previous-line
+    draw-current-text
+    # Disable further texts
+    set-text-invisible
+    jump text-done
+  end
+
+  # Erase previous line, draw next line
+  select-previous-line
+  draw-current-text
+  select-next-line
+  draw-current-text
+  select-next-line
+  # Fall through
+
+: text-done
+  plane 3
+  text-delay := 60
+  return
+
+: draw-current-text
+  v5 := 0
+  v6 := 15 # X
+  v7 := 26 # Y
+: draw-current-text-loop
+  load-current-text-line
+  v1 := v5
+  v3 := v6  # This is :(
+  v4 := v7
+  draw-next-char
+  v6 := v3
+  v5 += 1
+  if v0 == 0 then return
+  jump draw-current-text-loop
+
+# Input:
+#  * i points to string
+#  * v1 points to character in string (index)
+#  * coordinates in v3, v4
+# Output: updates v3 to next position
+# Destroys: v0
 : draw-next-char
   i += v1
   load v0
@@ -2493,16 +2642,61 @@
   i += v0
   i += v0
   i += v0
-  load v0
+  load v0   # WARNING: this affects i in unpredictable ways!
   sprite v3 v4 5
   v3 += v0
-  v1 += 1
+  return
+
+# Input: none
+# Output: i points to current text
+# Destroys: v0, v1
+: load-current-text
+  i := long current-text
+  load v1
+  i := load-current-text-smc
+  save v1
+  0xF0 0x00  # i := long ...
+: load-current-text-smc
+  0 0
+  return
+
+# Input: none
+# Output: i points to current text line
+# Destroys: v0 - v4
+: load-current-text-line
+  i := long current-text-line
+  load v0
+  v2 := v0
+  v3 := 0
+  v4 := 2
+  load-current-text
+  i += v4
+: load-current-text-line-loop1
+  if v2 == v3 then return
+: load-current-text-line-loop2
+  load v0   # WARNING: this affects i in unpredictable ways!
+  if v0 != 0 then jump load-current-text-line-loop2
+  v3 += 1
+  jump load-current-text-line-loop1
+
+: select-previous-line
+  i := long current-text-line
+  load v0
+  v0 -= 1
+  i := long current-text-line
+  save v0
+  return
+
+: select-next-line
+  i := long current-text-line
+  load v0
+  v0 += 1
+  i := long current-text-line
+  save v0
   return
 #####################
 # A non-blocking music player
-# `play-music` needs to be called at a reasonable frequency to keep the melody
-# going. Also, it hogs the buzzer and delay special registers. So if you need to
-# use those, stop calling this routine and reset the buzzer to zero.
+# `play-music` needs to be called again after 'music-delay' timer ticks.
 
 # Input: none
 : play-click
@@ -2545,16 +2739,12 @@
   i := long current-song
   save v2
   # Force `play-music` to start the new song right away
-  delay := v2
+  music-delay := 1
   return
 
 # Input: none
 # Destroys: v0 - v4
 : play-music
-  # Is the last note finished?
-  v0 := delay
-  if v0 != 0 then return
-
   # Load and update our position in the song
   i := long music-position
   load v0
@@ -2586,7 +2776,7 @@
   0 0
   # Play the sound!
   audio
-  delay := v3
+  music-delay := v3
   vf := 255
   buzzer := vf
   return
@@ -2627,6 +2817,7 @@
     v1 := 0
     i := long current-song-backup
     save v1
+    music-delay := 1
     return
   else
     # Step back one position so we don't play anything anymore
@@ -2798,7 +2989,7 @@
 : wait-key-press
   v5 := 0
 : wait-key-press-loop
-  play-music
+  clock-tick
   if v5 key then return
   v5 += 1
   if v5 != 16 then jump wait-key-press-loop
