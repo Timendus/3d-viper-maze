@@ -1,6 +1,8 @@
 #####################
-# Untitled Chip-8 Game
+# 3D Viper Maze
 # An Octojam 7 entry
+# By Timendus
+# https://github.com/Timendus/3d-viper-maze
 
 :macro pointer ADDRESS {
   :byte { ADDRESS >> 8 }
