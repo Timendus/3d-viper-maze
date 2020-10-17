@@ -513,6 +513,11 @@
   i := current-song
   v2 := 0
   save v2
+  # Clear any old backup songs
+  v0 := 0
+  v1 := 0
+  i := current-song-backup
+  save v1
   return
 
 # Input: 'unpacked' address of song in v0 and v1
@@ -523,12 +528,13 @@
   i := current-song-backup
   load v1
   v0 |= v1
-  if v0 != 0 then return
+  if v0 != 0 then jump interject-song-leave-backup-untouched
   # Swap current song to backup and new song to current
   i := current-song
   load v2
   i := current-song-backup
   save v2
+: interject-song-leave-backup-untouched
   v0 := v3
   v1 := v4
   v2 := 0
