@@ -1,10 +1,6 @@
 #!/bin/bash
 
-# Seems we need this ugly trick to define data first:
-echo > game.8o
-echo ": main" >> game.8o
-echo "  jump 0x0202" >> game.8o
-echo ":org 0x1000" >> game.8o
+echo ":org 0x1000" > game.8o
 echo >> game.8o
 
 cat src/shared-macros.8o >> game.8o
@@ -26,7 +22,7 @@ cat data/songs.8o >> game.8o
 # Put program code below 3.5K border
 
 echo >> game.8o
-echo ":org 0x202" >> game.8o
+echo ":org 0x200" >> game.8o
 echo >> game.8o
 
 cat src/main.8o >> game.8o
