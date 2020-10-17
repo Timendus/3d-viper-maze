@@ -1,16 +1,25 @@
 #####################
 # Text rendering routines
-# This needs a bit of work...
+# `show-text` needs to be called again after 'text-delay' timer ticks.
 
+# Input: Address of a string 'unpacked' into v0 and v1
 : select-text
   i := long current-text
   save v1
+  v0 := 0
+  i := long current-text-line
+  save v0
   return
 
+# Input: none
+# Destroys: v0
 : set-text-visible
   text-delay := 1
   v0 := 1
   jump set-text-visibility
+
+# Input: none
+# Destroys: v0
 : set-text-invisible
   v0 := 0
 : set-text-visibility
@@ -18,30 +27,90 @@
   save v0
   return
 
+# Destroys: v0 - v4
 : show-text
+  :monitor string-you-hear-slithering 20
+  :monitor current-text-line 1
   i := long text-visible
   load v0
   if v0 == 0 then return
+  load-current-text
+  load v1
+  if v0 == sequential then jump sequential-text
+  # Else it's blinking, fall through
+
+: blinking-text
   plane 1
-  v2 := 0
+  v2 := 1
   v3 := 15 # X
   v4 := 26 # Y
 : show-text-loop
-  i := long current-text
-  load v1
-  i := show-text-smc
-  save v1
-  0xF0 0x00  # i := long ...
-: show-text-smc
-  0 0
+  load-current-text
   v1 := v2
   draw-next-char
   v2 += 1
   if v0 != 0 then jump show-text-loop
   plane 3
-  text-delay := 100
+  text-delay := 30
   return
 
+: sequential-text
+  i := long current-text-line
+  load v0
+
+  # v0 == current line
+  # v1 == max line
+  plane 2
+  if v0 > v1 then jump text-done
+  if v0 == 0 begin
+    # Draw first line
+    draw-current-text
+    select-next-line
+    jump text-done
+  end
+  if v0 == v1 begin
+    # Erase last line
+    select-previous-line
+    draw-current-text
+    # Disable further texts
+    set-text-invisible
+    jump text-done
+  end
+
+  # Erase previous line, draw next line
+  select-previous-line
+  draw-current-text
+  select-next-line
+  draw-current-text
+  select-next-line
+  # Fall through
+
+: text-done
+  plane 3
+  text-delay := 60
+  return
+
+: draw-current-text
+  v5 := 0
+  v6 := 15 # X
+  v7 := 26 # Y
+: draw-current-text-loop
+  load-current-text-line
+  v1 := v5
+  v3 := v6  # This is :(
+  v4 := v7
+  draw-next-char
+  v6 := v3
+  v5 += 1
+  if v0 == 0 then return
+  jump draw-current-text-loop
+
+# Input:
+#  * i points to string
+#  * v1 points to character in string (index)
+#  * coordinates in v3, v4
+# Output: updates v3 to next position
+# Destroys: v0
 : draw-next-char
   i += v1
   load v0
@@ -54,4 +123,52 @@
   load v0   # WARNING: this affects i in unpredictable ways!
   sprite v3 v4 5
   v3 += v0
+  return
+
+# Input: none
+# Output: i points to current text
+# Destroys: v0, v1
+: load-current-text
+  i := long current-text
+  load v1
+  i := load-current-text-smc
+  save v1
+  0xF0 0x00  # i := long ...
+: load-current-text-smc
+  0 0
+  return
+
+# Input: none
+# Output: i points to current text line
+# Destroys: v0 - v4
+: load-current-text-line
+  i := long current-text-line
+  load v0
+  v2 := v0
+  v3 := 0
+  v4 := 2
+  load-current-text
+  i += v4
+: load-current-text-line-loop1
+  if v2 == v3 then return
+: load-current-text-line-loop2
+  load v0   # WARNING: this affects i in unpredictable ways!
+  if v0 != 0 then jump load-current-text-line-loop2
+  v3 += 1
+  jump load-current-text-line-loop1
+
+: select-previous-line
+  i := long current-text-line
+  load v0
+  v0 -= 1
+  i := long current-text-line
+  save v0
+  return
+
+: select-next-line
+  i := long current-text-line
+  load v0
+  v0 += 1
+  i := long current-text-line
+  save v0
   return

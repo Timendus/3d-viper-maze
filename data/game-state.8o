@@ -25,3 +25,5 @@
   0 0
 : text-visible
   0
+: current-text-line
+  0

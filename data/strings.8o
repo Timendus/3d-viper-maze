@@ -1,9 +1,34 @@
 #####################
 # String data
 
+:const blinking   0
+:const sequential 1
+
 :stringmode ascii "\0 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" {
   :byte { VALUE }
 }
+:macro part STR {
+  ascii STR 0
+}
+:macro blinking-string STR {
+  :byte blinking
+  ascii STR 0
+}
+:macro sequential-string NUM {
+  :byte sequential
+  :byte { NUM }
+}
 
 : string-press-any-key
-  ascii "Press a key..." 0
+  blinking-string "Press any key!"
+
+: string-you-hear-slithering
+  sequential-string 2
+  part "You  hear"
+  part " slithering"
+
+: string-button-pressed
+  sequential-string 3
+  part "The button"
+  part "made the"
+  part "walls move!"
