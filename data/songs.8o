@@ -87,11 +87,12 @@
 
 : victory-1
 
-  note D-4 4  rest 4      note G$4 4  rest 4      note A$4 4  rest 4
-  note E-5 5  note F-5 5  note E-5 5  note F-5 5  note E-5 5  rest 15
-  note F-4 4  rest 4      note C-5 4  rest 4      note D-5 4  rest 4
-  note F-5 5  note G-5 5  note F-5 5  note G-5 5  note F-5 5  rest 15
-  note G-5 10 rest 10     note G-5 12 rest 10     note F-5 14 rest 10  note G-5 40
+  note D-4 4   rest 4      note G$4 4   rest 4      note A$4 4   rest 4
+  note E-5 5   note F-5 5  note E-5 5   note F-5 5  note E-5 5   rest 15
+  note F-4 4   rest 4      note C-5 4   rest 4      note D-5 4   rest 4
+  note F-5 5   note G-5 5  note F-5 5   note G-5 5  note F-5 5   rest 15
+  note G-5 10  rest 10     note G-5 12  rest 10     note F-5 14  rest 10
+  note G-5 40  rest 10
   stop
 
 : victory-2
