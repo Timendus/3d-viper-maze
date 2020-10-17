@@ -23,3 +23,6 @@ cat screens/screens.txt >> game.8o
 cat data/binary-tree.8o >> game.8o
 
 echo "# That's all folks!" >> game.8o
+
+# Put on the clipboard for convenient pasting into Octo
+cat game.8o | pbcopy
