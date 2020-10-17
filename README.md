@@ -41,14 +41,23 @@ game 😉 So I decided to work with [Octo](https://johnearnest.github.io/Octo/).
   * [x] Column four
   * [x] Bugfix S-bends in the hallway
 * [x] Allow switching between 3D view and minimap view
-* [x] Add vipers that kill you and send you back to start (three lives?)
-* [ ] Add fancy viper animation
-* [ ] Make vipers walk around..?
+* [x] Add vipers that kill you and send you back to start
 * [x] Add buttons that change walls
-* [ ] Add eery texts
 * [x] Add music
-* [ ] Compose more songs for other levels
-* [ ] Make more levels
-* [ ] Add title screen
-* [ ] Add an overly convoluted introduction text
-* [ ] Add "You made it!" screens for at the end of a level and at the end of the game
+* [ ] Coding
+  * [ ] Fancy viper animation
+  * [ ] Vipers that can walk around..?
+  * [ ] Add text routine for some extra feedback
+    * Button: "Something has changed!"
+    * Viper near: "You hear slithering"
+  * [ ] Add overly convoluted introduction text
+* [ ] Pixel art
+  * [ ] Title screen
+  * [ ] Victory screen for map
+  * [ ] Victory screen for game
+* [ ] Music
+  * [ ] A title song
+  * [ ] One or two more songs for levels
+* [ ] Content
+  * [ ] More levels!
+* [ ] Bonus challenge: make a regular CHIP-8 game out of this?
