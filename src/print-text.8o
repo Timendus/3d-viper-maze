@@ -1,0 +1,39 @@
+#####################
+# Text rendering routines
+# This needs a bit of work...
+
+: print-hello-world
+  plane 1
+  v1 := 0
+: print-hello-world-loop
+  i := long string-hello-world
+  draw-next-char
+  if v0 != 0 then jump print-hello-world-loop
+  plane 3
+  return
+
+#: print-text2
+#  plane 1
+#  v1 := 0
+#: print-text2-loop
+#  i := long text2
+#  draw-next-char
+#  if v0 != 0 then jump print-text2-loop
+#  plane 3
+#  return
+
+
+: draw-next-char
+  i += v1
+  load v0
+  if v0 == 0 then return
+  i := long font
+  v0 <<= v0
+  i += v0
+  i += v0
+  i += v0
+  load v0
+  sprite v3 v4 5
+  v3 += v0
+  v1 += 1
+  return

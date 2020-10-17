@@ -1,0 +1,9 @@
+#####################
+# String data
+
+:stringmode ascii "\0 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~" {
+  :byte { VALUE }
+}
+
+: string-hello-world
+  ascii "Hello world" 0
