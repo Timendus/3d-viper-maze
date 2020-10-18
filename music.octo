@@ -1,169 +1,28 @@
+#####################
+# "Stand alone" version of the music player for writing songs.
+# The code is identical, except for the main loop.
+
+:alias music-delay vE
+
 : main
   :unpack 0 knee-deep-in-trouble
   select-song
   loop
     play-music
+    delay := music-delay
+    loop
+      v0 := delay
+      if v0 != 0 then
+    again
   again
 
 #####################
-# A non-blocking music player
-# `play-music` needs to be called at a reasonable frequency to keep the melody
-# going. Also, it hogs the buzzer and delay special registers. So if you need to
-# use those, stop calling this routine and reset the buzzer to zero.
+# Musical accompaniment
 
 :const c-note    0
 :const c-repeat  1
 :const c-da-capo 2
 :const c-stop    3
-
-: play-click
-  i := long click
-  v0 := 5
-  audio
-  buzzer := v0
-  return
-
-: select-song # and return to position 0
-  i := current-song
-  v2 := 0
-  save v2
-  return
-
-: interject-song # and resume playing afterwards
-  v3 := v0
-  v4 := v1
-  # Check if we're already in an interjected song (can't do two)
-  i := current-song-backup
-  load v1
-  v0 |= v1
-  if v0 != 0 then return
-  # Swap current song to backup and new song to current
-  i := current-song
-  load v2
-  i := current-song-backup
-  save v2
-  v0 := v3
-  v1 := v4
-  v2 := 0
-  i := current-song
-  save v2
-  # Force `play-music` to start the new song right away
-  delay := v2
-  return
-
-: play-music
-  # Is the last note finished?
-  v0 := delay
-  if v0 != 0 then return
-
-  # Load and update our position in the song
-  i := music-position
-  load v0
-  v4 := v0
-  v0 += 1
-  i := music-position
-  save v0
-
-  # Load the next music instruction
-  music-pointer
-  load v3
-
-  if v2 == c-note   then jump music-note
-  if v2 == c-repeat then jump music-repeat
-  if v2 == c-stop   then jump music-stop
-  # Else, it's a da capo
-
-: music-da-capo
-  v0 := 0
-  i := music-position
-  save v0
-  return
-
-: music-note
-  i := music-smc
-  save v1
-  0xF0 0x00 # i := long ...
-: music-smc
-  0 0
-  # Play the sound!
-  audio
-  delay := v3
-  vf := 255
-  buzzer := vf
-  return
-
-: music-repeat
-  v5 := v0
-  v6 := v1
-  music-pointer
-  if v5 == 0 begin
-    # We've done all the repetitions, reset for the next playthrough
-    v0 := v6
-    save v0
-  else
-    # Decrease the loop counter
-    v0 := v5
-    v0 -= 1
-    save v0
-
-    # Move the position back as many steps as the instruction dictates
-    i := music-position
-    load v0
-    v0 -= v3
-    i := music-position
-    save v0
-  end
-  jump play-music
-
-: music-stop
-  # Do we have anything left in backup to play?
-  i := current-song-backup
-  load v2
-  v3 := v0
-  v3 &= v1
-  if v3 != 0 begin
-    i := current-song
-    save v2
-    v0 := 0
-    v1 := 0
-    i := current-song-backup
-    save v1
-    return
-  else
-    # Step back one position so we don't play anything anymore
-    i := music-position
-    load v0
-    v0 -= 1
-    i := music-position
-    save v0
-  end
-  return
-
-: music-pointer
-  i := current-song
-  load v1
-  i := music-pointer-smc
-  save v1
-  0xF0 0x00
-: music-pointer-smc
-  0 0
-  i += v4
-  i += v4
-  i += v4
-  i += v4
-  return
-
-: current-song
-  0 0
-: music-position
-  0
-: current-song-backup
-  0 0
-: music-position-backup
-  0
-
-#####################
-# Musical accompaniment
 
 # Convenience macros
 
@@ -249,18 +108,189 @@
 : kdt10  note C-2 10  rest 10  note C-2 10  rest 10  rest 120                                    repeat 2 kdt10
          da-capo
 
+: im-too-young-to-vipe
+
+
+
+: hurting-plenty
+
+
+
+: clowns-arent-funny
+
+
+
 : victory-1
 
-  note D-4 4  rest 4      note G$4 4  rest 4      note A$4 4  rest 4
-  note E-5 5  note F-5 5  note E-5 5  note F-5 5  note E-5 5  rest 15
-  note F-4 4  rest 4      note C-5 4  rest 4      note D-5 4  rest 4
-  note F-5 5  note G-5 5  note F-5 5  note G-5 5  note F-5 5  rest 15
-  note G-5 10 rest 10     note G-5 12 rest 10     note F-5 14 rest 10  note G-5 40
+  note D-4 4   rest 4      note G$4 4   rest 4      note A$4 4   rest 4
+  note E-5 5   note F-5 5  note E-5 5   note F-5 5  note E-5 5   rest 15
+  note F-4 4   rest 4      note C-5 4   rest 4      note D-5 4   rest 4
+  note F-5 5   note G-5 5  note F-5 5   note G-5 5  note F-5 5   rest 15
+  note G-5 10  rest 10     note G-5 12  rest 10     note F-5 14  rest 10
+  note G-5 40  rest 10
   stop
 
 : victory-2
 
   note D-4 10  rest 4  note G$4 4  rest 4  note B-4 20  rest 8
   stop
+
+#####################
+# A non-blocking music player
+# `play-music` needs to be called again after 'music-delay' timer ticks.
+
+# Input: none
+: play-click
+  i := long click
+  v0 := 5
+  audio
+  buzzer := v0
+  return
+
+# Input: 'unpacked' address of song in v0 and v1
+: select-song # and return to position 0
+  i := long current-song
+  v2 := 0
+  save v2
+  # Clear any old backup songs
+  v0 := 0
+  v1 := 0
+  i := long current-song-backup
+  save v1
+  return
+
+# Input: 'unpacked' address of song in v0 and v1
+: interject-song # and resume playing afterwards
+  v3 := v0
+  v4 := v1
+  # Check if we're already in an interjected song (can't do two)
+  i := long current-song-backup
+  load v1
+  v0 |= v1
+  if v0 != 0 then jump interject-song-leave-backup-untouched
+  # Swap current song to backup and new song to current
+  i := long current-song
+  load v2
+  i := long current-song-backup
+  save v2
+: interject-song-leave-backup-untouched
+  v0 := v3
+  v1 := v4
+  v2 := 0
+  i := long current-song
+  save v2
+  # Force `play-music` to start the new song right away
+  music-delay := 1
+  return
+
+# Input: none
+# Destroys: v0 - v4
+: play-music
+  # Load and update our position in the song
+  i := long music-position
+  load v0
+  v4 := v0
+  v0 += 1
+  i := long music-position
+  save v0
+
+  # Load the next music instruction
+  music-pointer
+  load v3
+
+  if v2 == c-note   then jump music-note
+  if v2 == c-repeat then jump music-repeat
+  if v2 == c-stop   then jump music-stop
+  # Else, it's a da capo
+
+: music-da-capo
+  v0 := 0
+  i := long music-position
+  save v0
+  return
+
+: music-note
+  i := music-smc
+  save v1
+  0xF0 0x00 # i := long ...
+: music-smc
+  0 0
+  # Play the sound!
+  audio
+  music-delay := v3
+  vf := 255
+  buzzer := vf
+  return
+
+: music-repeat
+  v5 := v0
+  v6 := v1
+  music-pointer
+  if v5 == 0 begin
+    # We've done all the repetitions, reset for the next playthrough
+    v0 := v6
+    save v0
+  else
+    # Decrease the loop counter
+    v0 := v5
+    v0 -= 1
+    save v0
+
+    # Move the position back as many steps as the instruction dictates
+    i := long music-position
+    load v0
+    v0 -= v3
+    i := long music-position
+    save v0
+  end
+  jump play-music
+
+: music-stop
+  # Do we have anything left in backup to play?
+  i := long current-song-backup
+  load v2
+  v3 := v0
+  v3 |= v1
+  if v3 != 0 begin
+    i := long current-song
+    save v2
+    v0 := 0
+    v1 := 0
+    i := long current-song-backup
+    save v1
+    music-delay := 1
+    return
+  else
+    # Step back one position so we don't play anything anymore
+    i := long music-position
+    load v0
+    v0 -= 1
+    i := long music-position
+    save v0
+  end
+  return
+
+: music-pointer
+  i := long current-song
+  load v1
+  i := music-pointer-smc
+  save v1
+  0xF0 0x00  # i := long ...
+: music-pointer-smc
+  0 0
+  i += v4
+  i += v4
+  i += v4
+  i += v4
+  return
+
+: current-song
+  0 0
+: music-position
+  0
+: current-song-backup
+  0 0
+: music-position-backup
+  0
 
 # That's all folks!
