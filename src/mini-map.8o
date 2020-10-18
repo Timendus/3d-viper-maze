@@ -28,12 +28,21 @@
   v0 := X
   v1 := Y
   map-get
-  # Don't show tile if its still hidden
+  # Don't show tile if its hidden
   v1 := 0b00001000
+  v2 := 0b00000111
   v1 &= v0
-  if v1 != 0 then v0 := 0
+  v2 &= v0
+  if v1 == 0b00001000 begin
+    # Hidden normal stuff looks like hallway
+    v0 := 0x00
+    # Hidden hallways look like walls
+    if v2 == 0x00 then v0 := 0x01
+    # Hidden finishes look like walls
+    if v2 == 0x03 then v0 := 0x01
+  end
   # Mask out three relevant bits
-  v1 := 0x07
+  v1 := 0b00000111
   v0 &= v1
   # Get pointer to right sprite
   # Sprites are 8 bytes, so sprite = tiles + map value * 4
