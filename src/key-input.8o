@@ -119,6 +119,8 @@
   if v0 key then jump wait-key-release
   v0 := OCTO_KEY_D
   if v0 key then jump wait-key-release
+  v0 := OCTO_KEY_Q
+  if v0 key then jump wait-key-release
   return
 
 : check-triggers

@@ -3,6 +3,7 @@
 # (as an in-game help and for debugging)
 # Pressing Q exits the mini map and returns to normal gameplay
 : mini-map
+  wait-key-release
   clear
   play-click
   render-map
