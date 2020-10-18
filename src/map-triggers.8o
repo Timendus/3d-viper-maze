@@ -47,12 +47,12 @@
 
 # Training2
 
-: training2-button1
+: training2-button
   open-wall 9 2
   button-behaviour 7 6
 
 : training2-finish
-  :unpack 0 map1
+  :unpack 0 training3
   finish-behaviour
 
 : training2-secret
@@ -60,7 +60,16 @@
   secret-behaviour
 
 : training2-secret-finish
-  :unpack 0 map2
+  :unpack 0 map1
+  finish-behaviour
+
+# Training3
+
+: training3-snake
+  snake-behaviour 7 5
+
+: training3-finish
+  :unpack 0 map1
   finish-behaviour
 
 # Map1
@@ -100,8 +109,8 @@
   jump start-map
 
 : default-secret-behaviour
-  unpack-long victory-2
-  jump interject-song
+  # Don't give away the fact that we hit a secret
+  return
 
 : make-visible
   v5 := v0
