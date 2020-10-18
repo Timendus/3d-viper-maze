@@ -25,6 +25,13 @@ XO-Chip for this game. And my toolchain does not support those yet. Adding those
 extensions now would take away precious spare time from working on the actual
 game 😉 So I decided to work with [Octo](https://johnearnest.github.io/Octo/).
 
+## A big thanks to
+
+* @JohnEarnest for quick answers to Octo related questions and fixing a bug with
+  `:org` 🐜
+* @mirandavdende for helping with level design and listening to me whining 😉
+* @srekke for helping with musical inspiration 🎶
+
 ## Rough TO DO list:
 
 * [x] Have in-memory models of a map and the player's position
