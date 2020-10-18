@@ -61,7 +61,7 @@ game 😉 So I decided to work with [Octo](https://johnearnest.github.io/Octo/).
     * Viper near: "You hear slithering"
   * [ ] Add overly convoluted introduction text
 * [ ] Pixel art
-  * [ ] Title screen
+  * [x] Title screen
   * [ ] Victory screen for map
   * [ ] Victory screen for game
 * [ ] Music

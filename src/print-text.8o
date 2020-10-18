@@ -40,7 +40,7 @@
   # Else it's blinking, fall through
 
 : blinking-text
-  plane 1
+  plane 2
   v2 := 1
   v3 := 15 # X
   v4 := 26 # Y
