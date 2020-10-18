@@ -148,6 +148,8 @@
 
 : default-button-behaviour
   make-visible
+  unpack-long string-button-pressed
+  select-text
   unpack-long victory-2
   jump interject-song
 

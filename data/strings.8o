@@ -19,6 +19,9 @@
   :byte { NUM }
 }
 
+: string-none
+  sequential-string 0
+
 : string-press-any-key
   blinking-string "Press any key!"
 
@@ -30,5 +33,5 @@
 : string-button-pressed
   sequential-string 3
   part "The button"
-  part "made the"
+  part "  made the"
   part "walls move!"

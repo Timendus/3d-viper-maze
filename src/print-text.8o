@@ -29,8 +29,6 @@
 
 # Destroys: v0 - v4
 : show-text
-  :monitor string-you-hear-slithering 20
-  :monitor current-text-line 1
   i := long text-visible
   load v0
   if v0 == 0 then return
@@ -55,25 +53,25 @@
   return
 
 : sequential-text
+  # v1 == max line
   i := long current-text-line
   load v0
-
   # v0 == current line
-  # v1 == max line
+  if v0 > v1 then jump text-done # Did we reach the end of the sequence?
+
   plane 2
-  if v0 > v1 then jump text-done
   if v0 == 0 begin
-    # Draw first line
-    draw-current-text
+    # Is this the first call in the sequence?
+    #draw-current-text
     select-next-line
     jump text-done
   end
   if v0 == v1 begin
-    # Erase last line
+    # Is this the last call in the sequence?
     select-previous-line
     draw-current-text
-    # Disable further texts
-    set-text-invisible
+    select-next-line
+    select-next-line
     jump text-done
   end
 
@@ -88,6 +86,23 @@
 : text-done
   plane 3
   text-delay := 60
+  return
+
+: redraw-current-text
+  # Is text visible now?
+  i := long text-visible
+  load v0
+  if v0 == 0 then return
+  # Did we reach the end of the sequence?
+  load-current-text
+  load v1
+  i := long current-text-line
+  load v0
+  if v0 > v1 then return
+  # Otherwise, draw the text
+  plane 2
+  draw-current-text
+  plane 3
   return
 
 : draw-current-text

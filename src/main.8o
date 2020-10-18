@@ -22,6 +22,9 @@
   select-map
   start-map
 
+  unpack-long string-button-pressed
+  select-text
+
 : main-redraw
   clear
   render-3d
