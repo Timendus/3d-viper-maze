@@ -54,7 +54,7 @@ game 😉 So I decided to work with [Octo](https://johnearnest.github.io/Octo/).
 * [x] Add buttons that change walls
 * [x] Add music
 * [ ] Coding
-  * [ ] Fancy viper animation
+  * [x] Fancy viper animation
   * [ ] Vipers that can walk around..?
   * [ ] Add text routine for some extra feedback
     * Button: "Something has changed!"
