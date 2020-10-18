@@ -1,5 +1,10 @@
 #!/bin/bash
 
+cd screens
+./convert.sh
+./combine.sh
+cd ..
+
 echo ":org 0x1000" > 3dvipermaze.8o
 echo >> 3dvipermaze.8o
 
