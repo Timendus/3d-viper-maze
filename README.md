@@ -27,10 +27,12 @@ game 😉 So I decided to work with [Octo](https://johnearnest.github.io/Octo/).
 
 ## A big thanks to
 
-* @JohnEarnest for quick answers to Octo related questions and fixing a bug with
-  `:org` 🐜
-* @mirandavdende for helping with level design and listening to me whining 😉
-* @srekke for helping with musical inspiration 🎶
+* **[@JohnEarnest](https://github.com/JohnEarnest)** for quick answers to Octo
+  related questions and fixing a bug with `:org` 🐜
+* **[@mirandavdende](https://github.com/mirandavdende)** for helping with level
+  design and listening to me whining 😉
+* **[@srekke](https://github.com/srekke)** for helping with musical inspiration
+  🎶
 
 ## Rough TO DO list:
 
