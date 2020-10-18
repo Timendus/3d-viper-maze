@@ -70,7 +70,7 @@
   delay := v1
   loop
     v1 := delay
-    while v1 != 0
+    if v1 != 0 then
   again
   return
 
