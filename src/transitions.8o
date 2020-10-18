@@ -1,0 +1,86 @@
+#####################
+# Transition screens and animations
+
+: death-by-snake-animation
+  # TODO: animate snake ;)
+  play-click
+  v0 := 10
+  loop
+    scroll-up 1
+    v1 := 10
+    delay := v1
+    loop
+      v1 := delay
+      while v1 != 0
+    again
+    v0 -= 1
+    while v0 != 0
+  again
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  clear
+  v1 := 50
+  delay := v1
+  loop
+    v1 := delay
+    while v1 != 0
+  again
+  return
+
+: title-screen
+  # Select background music
+  unpack-long knee-deep-in-trouble
+  select-song
+  # Render this image
+  i := long title-screen+0+0
+  bitmap-to-screen
+  # Blink text
+  unpack-long string-press-any-key
+  select-text
+  set-text-visible
+  # And wait for a key press
+  wait-key-release
+  wait-key-press
+  set-text-invisible
+  jump wait-key-release
+
+: map-victory-screen
+  set-text-invisible
+  # Select background music
+  unpack-long knee-deep-in-trouble
+  select-song
+  # Select immediate sound effect
+  unpack-long victory-1
+  interject-song
+  # Render this image
+  i := long map-victory+0+0
+  bitmap-to-screen
+  # Blink text
+  unpack-long string-press-any-key
+  select-text
+  set-text-visible
+  # And wait for a key press
+  wait-key-release
+  wait-key-press
+  set-text-invisible
+  jump wait-key-release
+
+: bitmap-to-screen
+  clear
+  v0 := 0
+: bitmap-to-screen-loop
+  v1 := 0
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v1 := 16
+  sprite v0 v1 0
+  v1 := 64
+  i += v1
+  v0 += 16
+  if v0 != 64 then jump bitmap-to-screen-loop
+  return
