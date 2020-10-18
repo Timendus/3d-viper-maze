@@ -92,7 +92,7 @@
   map-get
   if v0 == 0x02 then jump select-map-start-found
   v4 += 1
-  if v4 != 7 then jump select-map-loop
+  if v4 != 15 then jump select-map-loop
   v4 := 0
   v5 += 1
   jump select-map-loop
