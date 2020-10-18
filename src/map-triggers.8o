@@ -55,7 +55,7 @@
   jump start-map
 
 : training2-button1
-  open-wall 9 4
+  open-wall 9 2
   make-visible 7 6
   unpack-long victory-2
   jump interject-song
