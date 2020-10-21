@@ -5,7 +5,7 @@
 :alias music-delay vE
 
 : main
-  :unpack 0 knee-deep-in-trouble
+  :unpack 0 coin
   select-song
   loop
     play-music
@@ -121,25 +121,25 @@
 
 : tytv1
 		note C-3 16  rest 2
-	note C-4 16  note B-3 10  rest 2       note C-4 10  rest 2  note G-3 16  rest 2
+	note C-4 16  note B-3 10  rest 2  note C-4 10  rest 2  note G-3 16  rest 2
 		note C-3 16  rest 2
-	note A$3 16  rest 2       note C-4 16 rest 26
+	note A$3 16  rest 2  note C-4 16 rest 26
 		note C-3 16  rest 2
-	note A$3 16  note A-3 10  rest 2       note A$3 10  rest 2  note G-3 16  rest 2
+	note A$3 16  note A-3 10  rest 2  note A$3 10  rest 2  note G-3 16  rest 2
 		note C-3 16  rest 2
-	note A-3 16  rest 2       note G-3 16 rest 26
+	note A-3 16  rest 2  note G-3 16 rest 26
 
 	repeat 2 tytv1
 
 : tytv2
 		note C-3 16  rest 2
-	note C-4 15 rest 1  note C-4 10  rest 2       note A$3 10  rest 2  note G-3 16  rest 2
+	note C-4 15 rest 1  note C-4 10  rest 2  note A$3 10  rest 2  note G-3 16  rest 2
 		note C-3 16  rest 2
-	note G-3 16  rest 2       note A$3 16 rest 26
+	note G-3 16  rest 2  note A$3 16 rest 26
 		note C-3 16  rest 2
-	note G-3 16  note G-3 10  rest 2       note F-3 10  rest 2  note D$3 16  rest 2
+	note G-3 16  note G-3 10  rest 2  note F-3 10  rest 2  note D$3 16  rest 2
 		note C-3 16  rest 2
-	note D-3 16  rest 2       note C-3 16 rest 26
+	note D-3 16  rest 2  note C-3 16 rest 26
 
 	repeat 2 tytv2
 
@@ -152,13 +152,13 @@
 
 : tytv4
 		note C-2 16  rest 2
-	note C-3 15 rest 1  note C-2 10  rest 2       note A$2 10  rest 2  note G-2 16  rest 2
+	note C-3 15 rest 1  note C-2 10  rest 2  note A$2 10  rest 2  note G-2 16  rest 2
 		note C-2 16  rest 2
-	note G-2 16  rest 2       note A$2 16 rest 26
+	note G-2 16  rest 2  note A$2 16 rest 26
 		note C-2 16  rest 2
-	note G-2 16  note G-2 10  rest 2       note F-2 10  rest 2  note D$2 16  rest 2
+	note G-2 16  note G-2 10  rest 2  note F-2 10  rest 2  note D$2 16  rest 2
 		note C-2 16  rest 2
-	note D-2 16  rest 2       note C-2 16 rest 26
+	note D-2 16  rest 2  note C-2 16 rest 26
 
 	repeat 2 tytv4
 
@@ -171,6 +171,10 @@
 : clowns-arent-funny
 
 
+
+: coin
+  note D-4 5  rest 5  note D-5 20 rest 5
+  stop
 
 : victory-1
 
