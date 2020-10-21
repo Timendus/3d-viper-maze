@@ -5,6 +5,8 @@
   0 0 # X, Y
 : player-orientation
   0 # orientation
+: coins-collected
+  0
 
 : dirty
   0

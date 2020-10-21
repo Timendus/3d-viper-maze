@@ -38,8 +38,8 @@
     v0 := 0x00
     # Hidden hallways look like walls
     if v2 == 0x00 then v0 := 0x01
-    # Hidden finishes look like walls
-    if v2 == 0x03 then v0 := 0x01
+    # Hidden coins look like walls
+    if v2 == 0x06 then v0 := 0x01
   end
   # Mask out three relevant bits
   v1 := 0b00000111

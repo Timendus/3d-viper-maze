@@ -39,6 +39,12 @@
   jump default-secret-behaviour
 }
 
+:macro coin-behaviour X Y {
+  v0 := X
+  v1 := Y
+  jump default-coin-behaviour
+}
+
 # Training1
 
 : training1-finish
@@ -111,6 +117,28 @@
 : default-secret-behaviour
   # Don't give away the fact that we hit a secret
   return
+
+: default-coin-behaviour
+  # Remove coin sprite and behaviour
+  v5 := v0
+  v6 := v1
+  map-get
+  v4 := v0
+  v0 := v5
+  v1 := v6
+  map-point
+  v0 := 0b00001000
+  v0 &= v4
+  save v0
+  # Increase coin count
+  i := long coins-collected
+  load v0
+  v0 += 1
+  i := long coins-collected
+  save v0
+  # Play ping
+  unpack-long coin
+  jump interject-song
 
 : make-visible
   v5 := v0
