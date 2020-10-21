@@ -58,6 +58,7 @@ sed -n 9,25p wall-5-6-3.txt >> screens.txt
 sed -n 1,29p sprites.txt >> screens.txt
 sed -n 9,25p viper4.txt >> screens.txt
 sed -n 9,25p viper-neck.txt >> screens.txt
+sed -n 25,33p sprites2.txt >> screens.txt
 
 # Bitmaps
 cat map-victory.txt >> screens.txt
