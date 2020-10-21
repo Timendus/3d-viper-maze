@@ -62,7 +62,7 @@ game 😉 So I decided to work with [Octo](https://johnearnest.github.io/Octo/).
   * [ ] Add overly convoluted introduction text
 * [ ] Pixel art
   * [x] Title screen
-  * [ ] Victory screen for map
+  * [x] Victory screen for map
   * [ ] Victory screen for game
 * [ ] Music
   * [ ] A title song
