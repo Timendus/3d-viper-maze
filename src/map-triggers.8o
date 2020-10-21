@@ -51,6 +51,12 @@
   :unpack 0 training2
   finish-behaviour
 
+: training1-coin1
+  coin-behaviour 8 4
+
+: training1-coin2
+  coin-behaviour 9 4
+
 # Training2
 
 : training2-button
@@ -65,9 +71,11 @@
   open-wall 5 3
   secret-behaviour
 
-: training2-secret-finish
-  :unpack 0 map1
-  finish-behaviour
+: training2-coin1
+  coin-behaviour 5 6
+
+: training2-coin2
+  coin-behaviour 7 6
 
 # Training3
 
@@ -81,11 +89,33 @@
 # Map1
 
 : map1-button1
-  open-wall 4 3
-  button-behaviour 2 6
+  open-wall 9 3
+  button-behaviour 7 6
 
 : map1-snake1
-  snake-behaviour 5 4
+  snake-behaviour 11 1
+
+: map1-button2
+  open-wall 5 5
+  button-behaviour 14 1
+
+: map1-snake2
+  snake-behaviour 1 5
+
+: map1-button3
+  open-wall 9 5
+  open-wall 14 3
+  button-behaviour 4 1
+
+: map1-button4
+  open-wall 2 1
+  button-behaviour 4 3
+
+: map1-coin1
+  coin-behaviour 1 2
+
+: map1-coin2
+  coin-behaviour 14 4
 
 : map1-finish
   :unpack 0 map2
@@ -94,7 +124,25 @@
 # Map2
 
 : map2-button1
-  button-behaviour 3 1
+  open-wall 2 4
+  button-behaviour 10 6
+
+: map2-coin1
+  coin-behaviour 8 1
+
+: map2-snake
+  snake-behaviour 8 4
+
+: map2-secret
+  open-wall 2 2
+  secret-behaviour
+
+: map2-coin2
+  coin-behaviour 1 1
+
+: map2-finish
+  :unpack 0 training1
+  finish-behaviour
 
 # Helpers
 
