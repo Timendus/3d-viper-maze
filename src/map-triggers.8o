@@ -164,6 +164,12 @@
   make-visible
   death-by-snake-animation
   send-player-back-to-start
+  # Increase death count
+  i := long num-deaths
+  load v0
+  v0 += 1
+  i := long num-deaths
+  save v0
   jump start-map
 
 : default-secret-behaviour

@@ -7,6 +7,8 @@
   0 # orientation
 : coins-collected
   0
+: num-deaths
+  0
 
 : dirty
   0
