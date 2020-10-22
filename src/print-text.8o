@@ -1,6 +1,10 @@
 #####################
 # Text rendering routines
 # `show-text` needs to be called again after 'text-delay' timer ticks.
+#
+# I'm not really happy with this code. It has dangerous loads (that don't
+# explicitly reset `i`) and the sequential text stuff is a mess. But time is a
+# limited resource, so we're moving on!
 
 # Input: Address of a string 'unpacked' into v0 and v1
 : select-text
@@ -98,12 +102,13 @@
   load v1
   i := long current-text-line
   load v0
+  if v0 == v1 then return
   if v0 > v1 then return
   # Otherwise, draw the text
   plane 2
   draw-current-text
-  plane 3
-  return
+  select-next-line
+  jump text-done
 
 : draw-current-text
   v5 := 0

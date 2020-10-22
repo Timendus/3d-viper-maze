@@ -25,6 +25,10 @@
 : string-press-any-key
   blinking-string "Press any key!"
 
+: string-good-luck
+  sequential-string 1
+  part "Good luck!"
+
 : string-you-hear-slithering
   sequential-string 2
   part "You  hear"

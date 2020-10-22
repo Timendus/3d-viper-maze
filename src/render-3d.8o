@@ -7,7 +7,7 @@
   column-three
     clock-tick
   foreground
-    redraw-current-text
+  redraw-current-text
     clock-tick
   column-one
     clock-tick
@@ -73,14 +73,14 @@
   v0 &= v1
   return
 
-: finish-far   i := long finish-far-xor  foreground-draw  return
-: finish-near  i := long finish-near-xor foreground-draw  jump foreground-far
-: button-far   i := long sprites+0+16    foreground-draw  return
-: button-near  i := long sprites+0+0     foreground-draw  jump foreground-far
-: viper-far    i := long sprites+32+0    foreground-draw  return
-: viper-near   i := long sprites+16+16   foreground-draw  jump foreground-far
-: coin-far     i := long sprites+32+16   foreground-draw  return
-: coin-near    i := long sprites+48+0    foreground-draw  jump foreground-far
+: finish-far   i := long finish-far-xor  foreground-draw  foreground-first-place-taken  return
+: finish-near  i := long finish-near-xor foreground-draw  foreground-first-place-taken  jump foreground-far
+: button-far   i := long sprites+0+16    foreground-draw  foreground-first-place-taken  return
+: button-near  i := long sprites+0+0     foreground-draw  foreground-first-place-taken  jump foreground-far
+: viper-far    i := long sprites+32+0    foreground-draw  foreground-first-place-taken  return
+: viper-near   i := long sprites+16+16   foreground-draw  foreground-first-place-taken  jump foreground-far
+: coin-far     i := long sprites+32+16   foreground-draw  foreground-first-place-taken  return
+: coin-near    i := long sprites+48+0    foreground-draw  foreground-first-place-taken  jump foreground-far
 
 : foreground-draw
   v0 := 24

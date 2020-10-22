@@ -22,7 +22,8 @@
   select-map
   start-map
 
-  unpack-long string-button-pressed
+  # Wish them luck!
+  unpack-long string-good-luck
   select-text
 
 : main-redraw

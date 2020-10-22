@@ -156,6 +156,8 @@
 : default-finish-behaviour
   select-map
   map-victory-screen
+  unpack-long string-good-luck
+  select-text
   jump start-map
 
 : default-snake-behaviour
