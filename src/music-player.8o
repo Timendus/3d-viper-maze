@@ -70,7 +70,7 @@
   v0 := 0
   i := long music-position
   save v0
-  return
+  jump play-music
 
 : music-note
   i := music-smc
@@ -121,8 +121,7 @@
     v1 := 0
     i := long current-song-backup
     save v1
-    music-delay := 1
-    return
+    jump play-music
   else
     # Step back one position so we don't play anything anymore
     i := long music-position
@@ -130,8 +129,9 @@
     v0 -= 1
     i := long music-position
     save v0
+    music-delay := 255
+    return
   end
-  return
 
 : music-pointer
   i := long current-song
