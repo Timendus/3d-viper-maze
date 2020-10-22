@@ -5,7 +5,7 @@ game for the illustrious Chip-8 platform in the month of October.
 
 ## The concept
 
-3D Viper Maze is (obviously) an homage to the game [3D Monster
+3D Viper Maze is (obviously) an homage to the Sinclair ZX81 game [3D Monster
 Maze](https://en.wikipedia.org/wiki/3D_Monster_Maze) from 1981. That game was
 released just three years after the specification for Chip-8 was published, so
 it's from around the same era. In honour of the first computer that ran Chip-8,
@@ -20,7 +20,7 @@ collecting all the coins, in a series of ever more difficult puzzles.
 ## A big thanks to
 
 * **[@JohnEarnest](https://github.com/JohnEarnest)** for quick answers to Octo
-  related questions and fixing a bug with `:org` 🐜
+  related questions and fixing a `:org` bug in Octo 🐜
 * **[@mirandavdende](https://github.com/mirandavdende)** for helping with level
   design and listening to me whining 😉
 * **[@srekke](https://github.com/srekke)** for helping with musical inspiration
@@ -41,9 +41,10 @@ When the game got too large and too complicated for a single file, I wrote a
 Bash script to recombine the files from the `src`, `data` and `screens`
 directories in the right order. I thought about using the Octo command line mode
 to assemble the result into a binary, but I figured pasting the un-assembled
-code into the Octo editor and playing "Run" was actually easier than having to
-load the binary file. So the build script generates the `3dvipermaze.8o` file
-and then just copies that to the clipboard (on MacOS, at least).
+code into the Octo editor and clicking "Run" was actually easier than having to
+load the binary file. So the build script generates the
+[`3dvipermaze.8o`](./3dvipermaze.8o) file and then just copies that to the
+clipboard (on MacOS, at least).
 
 Other than that I have made heavy use of [GIMP](https://www.gimp.org/) for all
 of the pixel art.
@@ -59,12 +60,12 @@ smoothly?
 The best way to quickly show full screens of bitmaps is to use the original low
 resolution of 64x32 pixels, but use the SCHIP 16x16 sprites. This way you only
 have to draw eight sprites to fill up the screen. The choice was quickly made to
-have 16x16 sprites with four colours, because with XO-Chip you basically get
-that for "free", cycles-wise. Of course, this isn't really compatible with the
-original Chip-8. So on pure Chip-8 I would have to draw 32 8x8 monochrome
-sprites to achieve the same result. That will definitely be noticeable. But I
-really don't mind to see the image build up on the screen, in fact I think it's
-nicely nostalgic, as long as it's somewhat playable.
+have sprites with four colours, because with XO-Chip you basically get that for
+"free", cycles-wise. Of course, this isn't really compatible with the original
+Chip-8. So on pure Chip-8 I would have to draw 32 8x8 monochrome sprites to
+achieve the same result. That will definitely be noticeable. But I really don't
+mind to see the image build up on the screen, in fact I think it's nicely
+nostalgic, as long as it's somewhat playable.
 
 So this got me started. Eight 16x16 sprites results in four columns of two
 sprites each, that I have to select the right images for. I only have to do the
@@ -107,7 +108,7 @@ cycles per frame even further.
 
 But that's okay, I figured. The original Chip-8 spec doesn't have sound anyway,
 so if I ever end up making a version for the hardware from the period I'll just
-remove all that magic that has to do with sound and we'll be fine.
+remove all the magic that has to do with sound and we'll be fine.
 
 In the end, I'm quite happy with the music routines I wrote. They seem pretty
 robust now, and allow you to play a "background score" and interject short
