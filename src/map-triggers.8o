@@ -148,12 +148,16 @@
 
 : default-button-behaviour
   make-visible
+  unpack-long string-button-pressed
+  select-text
   unpack-long victory-2
   jump interject-song
 
 : default-finish-behaviour
   select-map
   map-victory-screen
+  unpack-long string-good-luck
+  select-text
   jump start-map
 
 : default-snake-behaviour
@@ -184,6 +188,9 @@
   v0 += 1
   i := long coins-collected
   save v0
+  # Show friendly text
+  unpack-long string-coin
+  select-text
   # Play ping
   unpack-long coin
   jump interject-song

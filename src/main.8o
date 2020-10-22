@@ -22,6 +22,10 @@
   select-map
   start-map
 
+  # Wish them luck!
+  unpack-long string-good-luck
+  select-text
+
 : main-redraw
   clear
   render-3d

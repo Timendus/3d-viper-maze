@@ -7,6 +7,7 @@
   column-three
     clock-tick
   foreground
+  redraw-current-text
     clock-tick
   column-one
     clock-tick
@@ -48,9 +49,10 @@
   return
 
 : foreground
+  set-text-visible
   v4 := 1
   foreground-look
-  if v0 == 1 then return # We can't see through walls
+  if v0 == 1 then jump foreground-first-place-taken # We can't see through walls
   if v0 == 3 then jump finish-near
   if v0 == 4 then jump button-near
   if v0 == 5 then jump viper-near
@@ -72,18 +74,22 @@
   return
 
 : finish-far   i := long finish-far-xor  foreground-draw  return
-: finish-near  i := long finish-near-xor foreground-draw  jump foreground-far
+: finish-near  i := long finish-near-xor foreground-draw  foreground-first-place-taken  jump foreground-far
 : button-far   i := long sprites+0+16    foreground-draw  return
-: button-near  i := long sprites+0+0     foreground-draw  jump foreground-far
+: button-near  i := long sprites+0+0     foreground-draw  foreground-first-place-taken  jump foreground-far
 : viper-far    i := long sprites+32+0    foreground-draw  return
-: viper-near   i := long sprites+16+16   foreground-draw  jump foreground-far
+: viper-near   i := long sprites+16+16   foreground-draw  foreground-first-place-taken  jump foreground-far
 : coin-far     i := long sprites+32+16   foreground-draw  return
-: coin-near    i := long sprites+48+0    foreground-draw  jump foreground-far
+: coin-near    i := long sprites+48+0    foreground-draw  foreground-first-place-taken  jump foreground-far
 
 : foreground-draw
   v0 := 24
   v1 := 16
   sprite v0 v1 0
+  return
+
+: foreground-first-place-taken
+  set-text-invisible
   return
 
 #####################
