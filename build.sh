@@ -20,6 +20,7 @@ cat data/strings.8o >> 3dvipermaze.8o
 cat data/font.8o >> 3dvipermaze.8o
 
 cat screens/screens.txt >> 3dvipermaze.8o
+cat data/pre-xor.8o >> 3dvipermaze.8o
 cat data/binary-tree.8o >> 3dvipermaze.8o
 
 cat data/songs.8o >> 3dvipermaze.8o

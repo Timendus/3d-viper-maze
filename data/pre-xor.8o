@@ -1,0 +1,37 @@
+#####################
+# Pre-XOR the map finish tunnel
+# Concept taken from https://github.com/JohnEarnest/Octo/blob/gh-pages/docs/MetaProgramming.md
+# But adapted for 4 colours and offset 16x16 sprites
+
+:macro row-xor A B C ptr {
+  :byte { ( @ A + ptr ) ^ ( @ B + ptr + 1 ) }
+  :byte { ( @ A + ptr + 1 ) ^ ( @ C + ptr ) }
+}
+
+:macro offset-xor_ A B C {
+  row-xor A B C 0   row-xor A B C 2
+  row-xor A B C 4   row-xor A B C 6
+  row-xor A B C 8   row-xor A B C 10
+  row-xor A B C 12  row-xor A B C 14
+
+  row-xor A B C 16  row-xor A B C 18
+  row-xor A B C 20  row-xor A B C 22
+  row-xor A B C 24  row-xor A B C 26
+  row-xor A B C 28  row-xor A B C 30
+}
+
+:macro offset-xor A B C {
+  # Plane 1
+  offset-xor_ A B C
+  # Plane 2
+  :calc A { A + 32 }
+  :calc B { B + 32 }
+  :calc C { C + 32 }
+  offset-xor_ A B C
+}
+
+: finish-far-xor
+  offset-xor sprites2+48+0 wall-3+16+16 wall-3+32+16
+
+: finish-near-xor
+  offset-xor sprites2+48+16 wall-2+16+16 wall-2+32+16
