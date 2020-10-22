@@ -1,0 +1,150 @@
+#####################
+# Viper "AI"
+# Makes the vipers attack. Sometimes.
+# TODO:
+#  * Vipers can attack you through walls 🙈
+#  * Vipers you don't look at don't register on the map (is that a problem?)
+#  * Attacks can happen during rendering, giving glitches
+
+: vipers
+
+  # Do some chance magic
+  #  * 1 square away & looking at it  => 75% chance
+  #  * 1 square away & not looking    => 50% chance
+  #  * 2 squares away & looking at it => 50% chance
+  #  * 2 squares away & not looking   => 25% chance
+
+  # Viper ahead?
+  v6 := 0b00000111
+
+  v3 := 1
+  v4 := 1
+  look-ahead
+  v0 &= v6
+  if v0 == 5 then jump viper-ahead-near
+
+  v3 := 1
+  v4 := 2
+  look-ahead
+  v0 &= v6
+  if v0 == 5 then jump viper-ahead-far
+
+  # Viper around?
+  i := long player
+  load v1
+  v4 := v0
+  v5 := v1
+  v1 -= 1
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v0 := v4
+  v0 -= 1
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v0 := v4
+  v0 += 1
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v0 := v4
+  v1 := v5
+  v1 += 1
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+
+  v0 := v4
+  v1 := v5
+  v1 -= 2
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+  v0 := v4
+  v0 -= 2
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+  v0 := v4
+  v0 += 2
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+  v0 := v4
+  v1 := v5
+  v1 += 2
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+
+  viper-delay := 30
+  return
+
+
+: viper-ahead-near
+  # keep v4 intact
+  v0 := random 3
+  if v0 == 0 then return
+  jump death-by-visible-viper
+
+: viper-ahead-far
+  # keep v4 intact
+  v0 := random 1
+  if v0 == 0 then return
+  death-by-faraway-snake-animation
+  jump death-by-visible-viper
+
+
+: viper-around-near
+  v0 := random 1
+  if v0 == 0 then return
+  jump death-by-invisible-viper
+
+: viper-around-far
+  v0 := random 3
+  if v0 != 0 then return
+  jump death-by-invisible-viper
+
+
+: death-by-visible-viper
+  viper-abs-coords
+  default-snake-behaviour
+  jump mark-screen-dirty
+
+: death-by-invisible-viper
+  #make-visible
+  snakeless-death-animation
+  send-player-back-to-start
+  # Increase death count
+  i := long num-deaths
+  load v0
+  v0 += 1
+  i := long num-deaths
+  save v0
+  start-map
+  jump mark-screen-dirty
+
+: viper-abs-coords
+  i := long player
+  load v2
+  if v2 == 0 then jump viper-ahead-up
+  if v2 == 1 then jump viper-ahead-right
+  if v2 == 2 then jump viper-ahead-down
+  # Else fall through
+: viper-ahead-left
+  v0 -= v4
+  return
+: viper-ahead-right
+  v0 += v4
+  return
+: viper-ahead-up
+  v1 -= v4
+  return
+: viper-ahead-down
+  v1 += v4
+  return

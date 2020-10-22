@@ -38,6 +38,7 @@ cat src/map-management.8o >> 3dvipermaze.8o
 cat src/render-3d.8o >> 3dvipermaze.8o
 cat src/mini-map.8o >> 3dvipermaze.8o
 
+cat src/viper-ai.8o >> 3dvipermaze.8o
 cat src/print-text.8o >> 3dvipermaze.8o
 cat src/music-player.8o >> 3dvipermaze.8o
 

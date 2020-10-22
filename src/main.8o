@@ -44,8 +44,10 @@
 : clock-tick
   v0 := delay
   if v0 != 0 then return
+  viper-delay -= 1
   music-delay -= 1
   text-delay -= 1
+  if viper-delay == 0 then vipers
   if music-delay == 0 then play-music
   if text-delay == 0 then show-text
   v0 := 1

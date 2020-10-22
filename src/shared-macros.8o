@@ -10,5 +10,6 @@
   v1 := lo
 }
 
+:alias viper-delay vC
 :alias music-delay vD
 :alias text-delay vE

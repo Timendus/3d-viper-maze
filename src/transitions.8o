@@ -1,6 +1,21 @@
 #####################
 # Transition screens and animations
 
+: death-by-faraway-snake-animation
+  # Animate snake attack abusing render-3d routines
+
+  # Frame 0
+  i := long sprites+32+0
+  foreground-draw
+  i := long sprites+16+16
+  foreground-draw
+
+  play-click
+  v1 := 20
+  wait
+
+  return
+
 : death-by-snake-animation
   # Animate snake attack abusing render-3d routines
 
@@ -31,6 +46,26 @@
   wait
   play-click
   scroll-up-animation
+  v1 := 50
+  wait
+  clear
+  v1 := 30
+  wait
+  return
+
+: snakeless-death-animation
+  play-click
+  v1 := 30
+  wait
+  play-click
+  v0 := 0
+  loop
+    scroll-up 1
+    v1 := 10
+    wait
+    v0 += 1
+    if v0 != 10 then
+  again
   v1 := 50
   wait
   clear
