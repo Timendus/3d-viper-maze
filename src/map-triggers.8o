@@ -188,6 +188,9 @@
   v0 += 1
   i := long coins-collected
   save v0
+  # Show friendly text
+  unpack-long string-coin
+  select-text
   # Play ping
   unpack-long coin
   jump interject-song
