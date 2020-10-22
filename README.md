@@ -263,10 +263,11 @@ than it would have been to change hard-coded `if` statements.
 * [ ] Coding
   * [x] Fancy viper animation
   * [ ] Vipers that can walk around..?
-  * [ ] Add text routine for some extra feedback
+  * [x] Add text routine for some extra feedback
     * Button: "Something has changed!"
     * Viper near: "You hear slithering"
   * [ ] Add overly convoluted introduction text
+  * [ ] Add stats screen after each level
 * [ ] Pixel art
   * [x] Title screen
   * [x] Victory screen for map
