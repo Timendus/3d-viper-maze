@@ -262,7 +262,7 @@ than it would have been to change hard-coded `if` statements.
 * [x] Add music
 * [ ] Coding
   * [x] Fancy viper animation
-  * [ ] Vipers that can walk around..?
+  * [x] Vipers that randomly attack you from a distance
   * [x] Add text routine for some extra feedback
     * Button: "Something has changed!"
     * Viper near: "You hear slithering"
