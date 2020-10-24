@@ -1,5 +1,7 @@
 # 3D Viper Maze
 
+![Screenshot of the opening screen](./screenshot.png)
+
 A fun project for [Octojam 7](https://itch.io/jam/octojam-7). Challenge: write a
 game for the illustrious Chip-8 platform in the month of October.
 
