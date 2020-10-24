@@ -52,7 +52,7 @@
   finish-behaviour
 
 : training1-coin1
-  coin-behaviour 8 4
+  coin-behaviour 7 4
 
 : training1-coin2
   coin-behaviour 9 4

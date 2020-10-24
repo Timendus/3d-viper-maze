@@ -74,7 +74,7 @@
   return
 
 : finish-far   i := long finish-far-xor  foreground-draw  return
-: finish-near  i := long finish-near-xor foreground-draw  foreground-first-place-taken  jump foreground-far
+: finish-near  i := long finish-near-xor foreground-draw  jump foreground-far
 : button-far   i := long sprites+0+16    foreground-draw  return
 : button-near  i := long sprites+0+0     foreground-draw  foreground-first-place-taken  jump foreground-far
 : viper-far    i := long sprites+32+0    foreground-draw  return
