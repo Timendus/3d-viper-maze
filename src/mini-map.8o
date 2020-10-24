@@ -1,7 +1,7 @@
 #####################
 # Show the map on screen (top down) with a blinking player position
 # (as an in-game help and for debugging)
-# Pressing Q exits the mini map and returns to normal gameplay
+# Pressing 1 exits the mini map and returns to normal gameplay
 : mini-map
   wait-key-release
   clear
