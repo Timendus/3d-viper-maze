@@ -267,7 +267,7 @@ than it would have been to change hard-coded `if` statements.
     * Button: "Something has changed!"
     * Viper near: "You hear slithering"
   * [ ] Add overly convoluted introduction text
-  * [ ] Add stats screen after each level
+  * [x] Add stats screen after each level
 * [ ] Pixel art
   * [x] Title screen
   * [x] Victory screen for map

@@ -45,10 +45,15 @@
   jump default-coin-behaviour
 }
 
+:macro enter-secret-behaviour X Y {
+  v0 := X
+  v1 := Y
+  jump default-enter-secret-behaviour
+}
+
 # Training1
 
 : training1-finish
-  :unpack 0 training2
   finish-behaviour
 
 : training1-coin1
@@ -64,7 +69,6 @@
   button-behaviour 7 6
 
 : training2-finish
-  :unpack 0 training3
   finish-behaviour
 
 : training2-secret
@@ -77,13 +81,15 @@
 : training2-coin2
   coin-behaviour 7 6
 
+: training2-enter-secret
+  enter-secret-behaviour 5 4
+
 # Training3
 
 : training3-snake
   snake-behaviour 7 5
 
 : training3-finish
-  :unpack 0 map1
   finish-behaviour
 
 # Map1
@@ -118,7 +124,6 @@
   coin-behaviour 14 4
 
 : map1-finish
-  :unpack 0 map2
   finish-behaviour
 
 # Map2
@@ -141,7 +146,6 @@
   coin-behaviour 1 1
 
 : map2-finish
-  :unpack 0 training1
   finish-behaviour
 
 # Helpers
@@ -174,6 +178,19 @@
 
 : default-secret-behaviour
   # Don't give away the fact that we hit a secret
+  return
+
+: default-enter-secret-behaviour
+  # Remove this trigger
+  map-point
+  v0 := 0x08
+  save v0
+  # Count the secret
+  i := long secrets-visited
+  load v0
+  v0 += 1
+  i := long secrets-visited
+  save v0
   return
 
 : default-coin-behaviour

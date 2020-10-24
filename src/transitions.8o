@@ -147,7 +147,6 @@
   set-text-invisible
   jump wait-key-release
 
-# TODO: show correct number of lives, show correct number of secrets
 : map-stats-screen
   set-text-invisible
   # Render background
@@ -157,6 +156,7 @@
   plane 1
   i := long game-stats
   load v2
+  v5 := v1 # Save, because get-number messes it up
   # Coins
   get-number
   v3 := 36
@@ -184,28 +184,27 @@
   sprite v3 v4 5
   # Deaths
   i := long bcd-pad
-  bcd v1
+  bcd v5
   v3 := 33
   v4 := 1
   i := long bcd-pad
   load v2
+  v5 := v1 # Save, because get-number messes it up
   if v0 == 0 then jump map-stats-skip-digit-one
-  i := long font-numbers
-  i += v0
+  get-number
   sprite v3 v4 5
 : map-stats-skip-digit-one
   v3 += 4
   if v1 == 0 then jump map-stats-skip-digit-two
-  i := long font-numbers
-  i += v1
+  v0 := v5
+  get-number
   sprite v3 v4 5
 : map-stats-skip-digit-two
   v3 += 4
-  i := long font-numbers
-  i += v2
+  v0 := v2
+  get-number
   sprite v3 v4 5
   plane 3
-  # And wait for a key press (for now)
 : map-stats-wait-key
   wait-key-release
   wait-key-press
