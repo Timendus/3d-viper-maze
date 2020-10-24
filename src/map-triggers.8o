@@ -154,8 +154,8 @@
   jump interject-song
 
 : default-finish-behaviour
-  select-map
   map-victory-screen
+  map-stats-screen
   unpack-long string-good-luck
   select-text
   jump start-map

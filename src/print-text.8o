@@ -192,3 +192,18 @@
   i := long current-text-line
   save v0
   return
+
+#####################
+# Input: Number 0-9 in v0
+# Output: i points to right sprite
+# Destroys: v1
+: get-number
+  i := long font-numbers
+  v1 := v0
+  v1 += v0
+  v1 += v0
+  v1 <<= v1
+  i += v1
+  v1 := 1
+  i += v1
+  return

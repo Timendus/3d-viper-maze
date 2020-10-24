@@ -147,6 +147,86 @@
   set-text-invisible
   jump wait-key-release
 
+# TODO: show correct number of lives, show correct number of secrets
+: map-stats-screen
+  set-text-invisible
+  # Render background
+  i := long stats-screen+0+0
+  bitmap-to-screen
+  # Render stats
+  plane 1
+  i := long game-stats
+  load v2
+  # Coins
+  get-number
+  v3 := 36
+  v4 := 7
+  sprite v3 v4 5
+  map-metadata-start
+  v0 := 5
+  i += v0
+  load v0
+  get-number
+  v3 := 43
+  sprite v3 v4 5
+  # Secrets
+  v0 := v2
+  get-number
+  v3 := 11
+  v4 := 19
+  sprite v3 v4 5
+  map-metadata-start
+  v0 := 4
+  i += v0
+  load v0
+  get-number
+  v3 := 18
+  sprite v3 v4 5
+  # Deaths
+  i := long bcd-pad
+  bcd v1
+  v3 := 33
+  v4 := 1
+  i := long bcd-pad
+  load v2
+  if v0 == 0 then jump map-stats-skip-digit-one
+  i := long font-numbers
+  i += v0
+  sprite v3 v4 5
+: map-stats-skip-digit-one
+  v3 += 4
+  if v1 == 0 then jump map-stats-skip-digit-two
+  i := long font-numbers
+  i += v1
+  sprite v3 v4 5
+: map-stats-skip-digit-two
+  v3 += 4
+  i := long font-numbers
+  i += v2
+  sprite v3 v4 5
+  plane 3
+  # And wait for a key press (for now)
+: map-stats-wait-key
+  wait-key-release
+  wait-key-press
+  if v5 == OCTO_KEY_A then jump map-stats-go-back
+  if v5 == OCTO_KEY_D then jump map-stats-next
+  jump map-stats-wait-key
+: map-stats-next
+  map-metadata-start
+  v0 := 2
+  i += v0
+  load v1
+  select-map
+  i := long game-stats
+  v0 := 0
+  v1 := 0
+  v2 := 0
+  save v2
+: map-stats-go-back
+  send-player-back-to-start
+  jump wait-key-release
+
 : bitmap-to-screen
   clear
   v0 := 0

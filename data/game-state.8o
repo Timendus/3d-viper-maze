@@ -5,9 +5,13 @@
   0 0 # X, Y
 : player-orientation
   0 # orientation
+
+: game-stats
 : coins-collected
   0
 : num-deaths
+  0
+: secrets-visited
   0
 
 : dirty
@@ -31,3 +35,6 @@
   0
 : current-text-line
   0
+
+: bcd-pad
+  0 0 0
