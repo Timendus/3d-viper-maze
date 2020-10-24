@@ -132,6 +132,8 @@
   v3 >>= v3
   v3 >>= v3
   map-metadata-start
+  v0 := 4
+  i += v0
   i += v3
   load v1
   i := check-triggers-smc
