@@ -111,7 +111,7 @@
 
 : title-screen
   # Select background music
-  unpack-long knee-deep-in-trouble
+  unpack-long im-too-young-to-vipe
   select-song
   # Render this image
   i := long title-screen+0+0
@@ -128,7 +128,7 @@
 : map-victory-screen
   set-text-invisible
   # Select background music
-  unpack-long knee-deep-in-trouble
+  unpack-long im-too-young-to-vipe
   select-song
   # Select immediate sound effect
   unpack-long victory-1

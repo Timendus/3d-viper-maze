@@ -113,7 +113,8 @@ remove all the magic that has to do with sound and we'll be fine.
 In the end, I'm quite happy with the music routines I wrote. They seem pretty
 robust now, and allow you to play a "background score" and interject short
 little jingles as sound effects. I'm pretty pleased with that, and I think it
-really adds to the overall game vibe.
+really adds to the overall game vibe. If you'd like to use my code, [feel free
+to take a peak](./music.8o) at the stand-alone version of it.
 
 ### Pointing down
 
@@ -229,10 +230,10 @@ few macros to make it more legible:
 
 This is the start of the decision tree for the left-most column of 16 pixels.
 The data structure tells us that the first thing we'll look at is the spot to
-the left of the player. If there's a wall there, we go to the next node in the
-list. If there's no wall there, we go to the fourth node in the list (`node 3`).
-Until finally we hit a leaf in the tree, which is a pointer to one of the
-images, in a long list of images:
+the left of the player (the player is at coordinate 0,0). If there's a wall
+there, we go to the next node in the list. If there's no wall there, we go to
+the fourth node in the list (`node 3`). Until finally we hit a leaf in the tree,
+which is a pointer to one of the images, in a long list of images:
 
 ```octo
 : leafs
@@ -247,7 +248,9 @@ images, in a long list of images:
 
 This allowed me to keep track of things, without going too insane. Adding new
 images and new decision paths is relatively easy to do. At least a lot easier
-than it would have been to change hard-coded `if` statements.
+than it would have been to change hard-coded `if` statements. And if the time
+ever does comes that we really do need the speed boost, I'm sure we could
+generate those statements from these trees.
 
 ## Rough TO DO list:
 
