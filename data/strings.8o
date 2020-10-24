@@ -44,3 +44,8 @@
   sequential-string 2
   part "You found"
   part "   a coin!"
+
+: string-snake-got-you
+  sequential-string 2
+  part "   A viper"
+  part "  got you!"

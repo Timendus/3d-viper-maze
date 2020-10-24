@@ -162,6 +162,8 @@
   v0 += 1
   i := long num-deaths
   save v0
+  unpack-long string-snake-got-you
+  select-text
   start-map
   jump mark-screen-dirty
 
