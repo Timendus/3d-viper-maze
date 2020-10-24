@@ -9,6 +9,7 @@
   plane 3
 
   # Prepare virtual timers
+  viper-delay := 1
   music-delay := 1
   text-delay := 1
   v0 := 1
@@ -31,8 +32,8 @@
   render-3d
   mark-screen-clean
 : main-loop
-  check-keys
   clock-tick
+  check-keys
   i := long dirty    # Is the screen dirty?
   load v0
   if v0 == 1 then jump main-redraw

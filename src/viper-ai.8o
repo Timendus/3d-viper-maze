@@ -1,27 +1,31 @@
 #####################
 # Viper "AI"
 # Makes the vipers attack. Sometimes.
+# This code is pretty sloppy, but October is running out 🙈
 # TODO:
-#  * Vipers can attack you through walls 🙈
 #  * Vipers you don't look at don't register on the map (is that a problem?)
-#  * Attacks can happen during rendering, giving glitches
 
 : vipers
+  # Please run this routine every half a second
+  viper-delay := 30
 
-  # Do some chance magic
-  #  * 1 square away & looking at it  => 75% chance
-  #  * 1 square away & not looking    => 50% chance
-  #  * 2 squares away & looking at it => 50% chance
-  #  * 2 squares away & not looking   => 25% chance
+  # Don't run when the screen is dirty, that gives glitches
+  i := long dirty
+  load v0
+  if v0 == 1 then return
+
+  # Check to is if there is a viper around
+  # And if so, if it is blocked by a wall.
+  v6 := 0b00000111
+  :alias wall-seen v8
 
   # Viper ahead?
-  v6 := 0b00000111
-
   v3 := 1
   v4 := 1
   look-ahead
   v0 &= v6
   if v0 == 5 then jump viper-ahead-near
+  if v0 == 1 then jump viper-wall1
 
   v3 := 1
   v4 := 2
@@ -29,7 +33,9 @@
   v0 &= v6
   if v0 == 5 then jump viper-ahead-far
 
+: viper-wall1
   # Viper around?
+  wall-seen := 0
   i := long player
   load v1
   v4 := v0
@@ -38,43 +44,66 @@
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-near
+  v9 := 1
+  if v0 == 1 then wall-seen |= v9
   v0 := v4
   v0 -= 1
   v1 := v5
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-near
+  v9 <<= v9
+  if v0 == 1 then wall-seen |= v9
   v0 := v4
   v0 += 1
   v1 := v5
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-near
+  v9 <<= v9
+  if v0 == 1 then wall-seen |= v9
   v0 := v4
   v1 := v5
   v1 += 1
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-near
+  v9 <<= v9
+  if v0 == 1 then wall-seen |= v9
 
+  v9 := 1
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall2
   v0 := v4
   v1 := v5
   v1 -= 2
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-far
+: viper-wall2
+  v9 := 2
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall3
   v0 := v4
   v0 -= 2
   v1 := v5
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-far
+: viper-wall3
+  v9 := 4
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall4
   v0 := v4
   v0 += 2
   v1 := v5
   map-get
   v0 &= v6
   if v0 == 5 then jump viper-around-far
+: viper-wall4
+  v9 := 8
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall5
   v0 := v4
   v1 := v5
   v1 += 2
@@ -82,9 +111,16 @@
   v0 &= v6
   if v0 == 5 then jump viper-around-far
 
-  viper-delay := 30
+: viper-wall5
+  # Done!
   return
 
+
+# Do some chance magic
+#  * 1 square away & looking at it  => 75% chance
+#  * 1 square away & not looking    => 50% chance
+#  * 2 squares away & looking at it => 50% chance
+#  * 2 squares away & not looking   => 25% chance
 
 : viper-ahead-near
   # keep v4 intact
