@@ -63,5 +63,6 @@ sed -n 25,33p sprites2.txt >> screens.txt
 # Bitmaps
 cat map-victory.txt >> screens.txt
 cat title-screen.txt >> screens.txt
-sed -n 1,17p clown.txt >> screens.txt
 cat stats-screen.txt >> screens.txt
+cat clown.txt >> screens.txt
+cat clown2.txt >> screens.txt

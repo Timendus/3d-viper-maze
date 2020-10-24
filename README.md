@@ -266,7 +266,7 @@ than it would have been to change hard-coded `if` statements.
   * [x] Add text routine for some extra feedback
     * Button: "Something has changed!"
     * Viper near: "You hear slithering"
-  * [ ] Add overly convoluted introduction text
+  * [x] Add introduction text
   * [x] Add stats screen after each level
 * [ ] Pixel art
   * [x] Title screen

@@ -115,16 +115,15 @@
   select-song
   # Render this image
   i := long title-screen+0+0
-  bitmap-to-screen
-  # Blink text
-  unpack-long string-press-any-key
-  select-text
-  set-text-visible
-  # And wait for a key press
-  wait-key-release
-  wait-key-press
-  set-text-invisible
-  jump wait-key-release
+  jump default-bitmap-wait
+
+: clown-screen1
+  i := long clown+0+0
+  jump default-bitmap-wait
+
+: clown-screen2
+  i := long clown2+0+0
+  jump default-bitmap-wait
 
 : map-victory-screen
   set-text-invisible
@@ -136,6 +135,9 @@
   interject-song
   # Render this image
   i := long map-victory+0+0
+  # Fall through
+
+: default-bitmap-wait
   bitmap-to-screen
   # Blink text
   unpack-long string-press-any-key

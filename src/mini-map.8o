@@ -12,7 +12,7 @@
   v0 := 20
   delay := v0
 : mini-map-delay-loop
-  v0 := OCTO_KEY_Q
+  v0 := OCTO_KEY_1
   if v0 key then jump exit-from-map
   v0 := delay
   if v0 == 0 then jump mini-map-loop
@@ -90,7 +90,7 @@
 
 : exit-from-map
   play-click
-  v0 := OCTO_KEY_Q
+  v0 := OCTO_KEY_1
   if v0 key then jump exit-from-map
   mark-screen-dirty
   return

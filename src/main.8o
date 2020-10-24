@@ -17,6 +17,8 @@
 
   # Welcome the user!
   title-screen
+  clown-screen1
+  clown-screen2
 
   # Start with training map
   :unpack 0 training1
