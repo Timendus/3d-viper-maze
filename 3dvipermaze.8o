@@ -12,6 +12,7 @@
   v1 := lo
 }
 
+:alias viper-delay vC
 :alias music-delay vD
 :alias text-delay vE
 #####################
@@ -22,6 +23,8 @@
 : player-orientation
   0 # orientation
 : coins-collected
+  0
+: num-deaths
   0
 
 : dirty
@@ -193,8 +196,15 @@
   :byte { NUM }
 }
 
+: string-none
+  sequential-string 0
+
 : string-press-any-key
   blinking-string "Press any key!"
+
+: string-good-luck
+  sequential-string 1
+  part "Good luck!"
 
 : string-you-hear-slithering
   sequential-string 2
@@ -204,8 +214,13 @@
 : string-button-pressed
   sequential-string 3
   part "The button"
-  part "made the"
+  part "  made the"
   part "walls move!"
+
+: string-coin
+  sequential-string 2
+  part "You found"
+  part "   a coin!"
 #####################
 # Text font data
 
@@ -2124,6 +2139,7 @@
   plane 3
 
   # Prepare virtual timers
+  viper-delay := 1
   music-delay := 1
   text-delay := 1
   v0 := 1
@@ -2133,17 +2149,21 @@
   title-screen
 
   # Start with training map
-  :unpack 0 training1
+  :unpack 0 training3
   select-map
   start-map
+
+  # Wish them luck!
+  unpack-long string-good-luck
+  select-text
 
 : main-redraw
   clear
   render-3d
   mark-screen-clean
 : main-loop
-  check-keys
   clock-tick
+  check-keys
   i := long dirty    # Is the screen dirty?
   load v0
   if v0 == 1 then jump main-redraw
@@ -2155,8 +2175,10 @@
 : clock-tick
   v0 := delay
   if v0 != 0 then return
+  viper-delay -= 1
   music-delay -= 1
   text-delay -= 1
+  if viper-delay == 0 then vipers
   if music-delay == 0 then play-music
   if text-delay == 0 then show-text
   v0 := 1
@@ -2178,6 +2200,21 @@
   return
 #####################
 # Transition screens and animations
+
+: death-by-faraway-snake-animation
+  # Animate snake attack abusing render-3d routines
+
+  # Frame 0
+  i := long sprites+32+0
+  foreground-draw
+  i := long sprites+16+16
+  foreground-draw
+
+  play-click
+  v1 := 20
+  wait
+
+  return
 
 : death-by-snake-animation
   # Animate snake attack abusing render-3d routines
@@ -2209,6 +2246,26 @@
   wait
   play-click
   scroll-up-animation
+  v1 := 50
+  wait
+  clear
+  v1 := 30
+  wait
+  return
+
+: snakeless-death-animation
+  play-click
+  v1 := 30
+  wait
+  play-click
+  v0 := 0
+  loop
+    scroll-up 1
+    v1 := 10
+    wait
+    v0 += 1
+    if v0 != 10 then
+  again
   v1 := 50
   wait
   clear
@@ -2427,6 +2484,7 @@
   column-three
     clock-tick
   foreground
+  redraw-current-text
     clock-tick
   column-one
     clock-tick
@@ -2468,9 +2526,10 @@
   return
 
 : foreground
+  set-text-visible
   v4 := 1
   foreground-look
-  if v0 == 1 then return # We can't see through walls
+  if v0 == 1 then jump foreground-first-place-taken # We can't see through walls
   if v0 == 3 then jump finish-near
   if v0 == 4 then jump button-near
   if v0 == 5 then jump viper-near
@@ -2492,18 +2551,22 @@
   return
 
 : finish-far   i := long finish-far-xor  foreground-draw  return
-: finish-near  i := long finish-near-xor foreground-draw  jump foreground-far
+: finish-near  i := long finish-near-xor foreground-draw  foreground-first-place-taken  jump foreground-far
 : button-far   i := long sprites+0+16    foreground-draw  return
-: button-near  i := long sprites+0+0     foreground-draw  jump foreground-far
+: button-near  i := long sprites+0+0     foreground-draw  foreground-first-place-taken  jump foreground-far
 : viper-far    i := long sprites+32+0    foreground-draw  return
-: viper-near   i := long sprites+16+16   foreground-draw  jump foreground-far
+: viper-near   i := long sprites+16+16   foreground-draw  foreground-first-place-taken  jump foreground-far
 : coin-far     i := long sprites+32+16   foreground-draw  return
-: coin-near    i := long sprites+48+0    foreground-draw  jump foreground-far
+: coin-near    i := long sprites+48+0    foreground-draw  foreground-first-place-taken  jump foreground-far
 
 : foreground-draw
   v0 := 24
   v1 := 16
   sprite v0 v1 0
+  return
+
+: foreground-first-place-taken
+  set-text-invisible
   return
 
 #####################
@@ -2657,8 +2720,198 @@
   mark-screen-dirty
   return
 #####################
+# Viper "AI"
+# Makes the vipers attack. Sometimes.
+# This code is pretty sloppy, but October is running out 🙈
+# TODO:
+#  * Vipers you don't look at don't register on the map (is that a problem?)
+
+: vipers
+  # Please run this routine every half a second
+  viper-delay := 30
+
+  # Don't run when the screen is dirty, that gives glitches
+  i := long dirty
+  load v0
+  if v0 == 1 then return
+
+  # Check to is if there is a viper around
+  # And if so, if it is blocked by a wall.
+  v6 := 0b00000111
+  :alias wall-seen v8
+
+  # Viper ahead?
+  v3 := 1
+  v4 := 1
+  look-ahead
+  v0 &= v6
+  if v0 == 5 then jump viper-ahead-near
+  if v0 == 1 then jump viper-wall1
+
+  v3 := 1
+  v4 := 2
+  look-ahead
+  v0 &= v6
+  if v0 == 5 then jump viper-ahead-far
+
+: viper-wall1
+  # Viper around?
+  wall-seen := 0
+  i := long player
+  load v1
+  v4 := v0
+  v5 := v1
+  v1 -= 1
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v9 := 1
+  if v0 == 1 then wall-seen |= v9
+  v0 := v4
+  v0 -= 1
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v9 <<= v9
+  if v0 == 1 then wall-seen |= v9
+  v0 := v4
+  v0 += 1
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v9 <<= v9
+  if v0 == 1 then wall-seen |= v9
+  v0 := v4
+  v1 := v5
+  v1 += 1
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-near
+  v9 <<= v9
+  if v0 == 1 then wall-seen |= v9
+
+  v9 := 1
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall2
+  v0 := v4
+  v1 := v5
+  v1 -= 2
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+: viper-wall2
+  v9 := 2
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall3
+  v0 := v4
+  v0 -= 2
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+: viper-wall3
+  v9 := 4
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall4
+  v0 := v4
+  v0 += 2
+  v1 := v5
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+: viper-wall4
+  v9 := 8
+  v9 &= wall-seen
+  if v9 != 0 then jump viper-wall5
+  v0 := v4
+  v1 := v5
+  v1 += 2
+  map-get
+  v0 &= v6
+  if v0 == 5 then jump viper-around-far
+
+: viper-wall5
+  # Done!
+  return
+
+
+# Do some chance magic
+#  * 1 square away & looking at it  => 75% chance
+#  * 1 square away & not looking    => 50% chance
+#  * 2 squares away & looking at it => 50% chance
+#  * 2 squares away & not looking   => 25% chance
+
+: viper-ahead-near
+  # keep v4 intact
+  v0 := random 3
+  if v0 == 0 then return
+  jump death-by-visible-viper
+
+: viper-ahead-far
+  # keep v4 intact
+  v0 := random 1
+  if v0 == 0 then return
+  death-by-faraway-snake-animation
+  jump death-by-visible-viper
+
+
+: viper-around-near
+  v0 := random 1
+  if v0 == 0 then return
+  jump death-by-invisible-viper
+
+: viper-around-far
+  v0 := random 3
+  if v0 != 0 then return
+  jump death-by-invisible-viper
+
+
+: death-by-visible-viper
+  viper-abs-coords
+  default-snake-behaviour
+  jump mark-screen-dirty
+
+: death-by-invisible-viper
+  #make-visible
+  snakeless-death-animation
+  send-player-back-to-start
+  # Increase death count
+  i := long num-deaths
+  load v0
+  v0 += 1
+  i := long num-deaths
+  save v0
+  start-map
+  jump mark-screen-dirty
+
+: viper-abs-coords
+  i := long player
+  load v2
+  if v2 == 0 then jump viper-ahead-up
+  if v2 == 1 then jump viper-ahead-right
+  if v2 == 2 then jump viper-ahead-down
+  # Else fall through
+: viper-ahead-left
+  v0 -= v4
+  return
+: viper-ahead-right
+  v0 += v4
+  return
+: viper-ahead-up
+  v1 -= v4
+  return
+: viper-ahead-down
+  v1 += v4
+  return
+#####################
 # Text rendering routines
 # `show-text` needs to be called again after 'text-delay' timer ticks.
+#
+# I'm not really happy with this code. It has dangerous loads (that don't
+# explicitly reset `i`) and the sequential text stuff is a mess. But time is a
+# limited resource, so we're moving on!
 
 # Input: Address of a string 'unpacked' into v0 and v1
 : select-text
@@ -2687,8 +2940,6 @@
 
 # Destroys: v0 - v4
 : show-text
-  :monitor string-you-hear-slithering 20
-  :monitor current-text-line 1
   i := long text-visible
   load v0
   if v0 == 0 then return
@@ -2713,25 +2964,25 @@
   return
 
 : sequential-text
+  # v1 == max line
   i := long current-text-line
   load v0
-
   # v0 == current line
-  # v1 == max line
+  if v0 > v1 then jump text-done # Did we reach the end of the sequence?
+
   plane 2
-  if v0 > v1 then jump text-done
   if v0 == 0 begin
-    # Draw first line
-    draw-current-text
+    # Is this the first call in the sequence?
+    #draw-current-text
     select-next-line
     jump text-done
   end
   if v0 == v1 begin
-    # Erase last line
+    # Is this the last call in the sequence?
     select-previous-line
     draw-current-text
-    # Disable further texts
-    set-text-invisible
+    select-next-line
+    select-next-line
     jump text-done
   end
 
@@ -2747,6 +2998,24 @@
   plane 3
   text-delay := 60
   return
+
+: redraw-current-text
+  # Is text visible now?
+  i := long text-visible
+  load v0
+  if v0 == 0 then return
+  # Did we reach the end of the sequence?
+  load-current-text
+  load v1
+  i := long current-text-line
+  load v0
+  if v0 == v1 then return
+  if v0 > v1 then return
+  # Otherwise, draw the text
+  plane 2
+  draw-current-text
+  select-next-line
+  jump text-done
 
 : draw-current-text
   v5 := 0
@@ -3282,18 +3551,28 @@
 
 : default-button-behaviour
   make-visible
+  unpack-long string-button-pressed
+  select-text
   unpack-long victory-2
   jump interject-song
 
 : default-finish-behaviour
   select-map
   map-victory-screen
+  unpack-long string-good-luck
+  select-text
   jump start-map
 
 : default-snake-behaviour
   make-visible
   death-by-snake-animation
   send-player-back-to-start
+  # Increase death count
+  i := long num-deaths
+  load v0
+  v0 += 1
+  i := long num-deaths
+  save v0
   jump start-map
 
 : default-secret-behaviour
@@ -3318,6 +3597,9 @@
   v0 += 1
   i := long coins-collected
   save v0
+  # Show friendly text
+  unpack-long string-coin
+  select-text
   # Play ping
   unpack-long coin
   jump interject-song
@@ -3342,9 +3624,9 @@
 : training1
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x26 0x36 0x13 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x26 0x00 0x36 0x00 0x13 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
@@ -3362,8 +3644,8 @@
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x02 0x00 0x00 0x00 0x01 0x00 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x00 0x01 0x01 0x00 0x01 0x01 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x08 0x01 0x00 0x01 0x01 0x00 0x30 0x23 0x01 0x01 0x01
-  0x01 0x01 0x01 0x01 0x01 0x08 0x01 0x1C 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x08 0x01 0x1C 0x01 0x01 0x00 0x30 0x23 0x01 0x01 0x01
+  0x01 0x01 0x01 0x01 0x01 0x08 0x01 0x00 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x4E 0x01 0x56 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
   0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01 0x01
 
