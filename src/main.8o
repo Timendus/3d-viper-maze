@@ -21,8 +21,7 @@
   clown-screen2
 
   # Start with training map
-  :unpack 0 training1
-  select-map
+  send-player-back-to-start
   start-map
 
   # Wish them luck!

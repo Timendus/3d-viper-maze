@@ -154,22 +154,30 @@ But you can't do these things:
 This is a very understandable limitation, but also a pretty annoying one. Mainly
 because in my game I have maps with triggers. You walk somewhere specific in the
 game and something happens. So my maps use pointers to point to subroutines that
-make the "something" happen. But one of things that often needs to happen is to
-switch to a new map when you hit the finish. So the trigger routines reference
-maps too. So it's a cyclic reference, in a world that can only point up to things it's already seen.
+make the "something" happen. But one of the things that often needs to happen is
+to switch to a new map when you hit the finish. At first I used these trigger
+routines to define which map should come next, so some trigger routines would
+reference maps too. Creating a cyclic reference, in a world that can only point
+up to things it's already seen.
 
-I solved this for now by using `pointer trigger-routine` in my map definitions
+At first I solved this by using `pointer trigger-routine` in my map definitions
 to put the address of the relevant trigger subroutine in RAM. And the trigger
-routines then load a new map by using `:unpack 0 new-map` before calling a map
-loading routine. Sure, this works, but the noteworthy limitation is that the
-native `:unpack` only supports 12-bit addresses. We need a macro like
-`unpack-long` to be able to address places in memory above 3.5K. But that can't
-do forward references, because it's a macro.
+routines then loaded a new map by using `:unpack 0 new-map` before calling a map
+loading routine. Sure, this works, but the native `:unpack` only supports 12-bit
+addresses. We need a macro like `unpack-long` to be able to address places in
+memory above 3.5K. But that can't do forward references, because it's a macro.
 
-So this means that in the end my map definitions have to live in executable code
-space, severely limiting either the amount of code or the number of maps the
-game can have. Ah well, you can't have it all I guess. And the limitations make
-us creative, right? 😉
+So for a while I feared that my map definitions would have to live in executable
+code space, severely limiting either the amount of code or the number of maps
+the game can have. However, when implementing the stats screen where you can
+choose to go on to the next level or return to the previous one, I realised that
+it would be much easier to use a `pointer next-map` in the meta-data of the
+current map. This way I did not have to juggle with pointers to maps in the code
+that handles this screen, and it solved my 12-bit limit almost as a by-product.
+
+The only downside is that my maps are now in memory in reverse order, each one
+referencing back up to the next. I guess arbitrary limitations really do make us
+creative 😉
 
 ### So many bitmaps
 

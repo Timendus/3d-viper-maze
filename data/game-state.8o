@@ -27,7 +27,7 @@
   0
 
 : current-map
-  0 0
+  pointer training1
 
 : current-text
   0 0

@@ -5,15 +5,15 @@ cd screens
 ./combine.sh
 cd ..
 
-echo ":org 0x1000" > 3dvipermaze.8o
-echo >> 3dvipermaze.8o
-
-cat src/shared-macros.8o >> 3dvipermaze.8o
+cat src/shared-macros.8o > 3dvipermaze.8o
 
 # Put data at 3.5K border and further, but define it first so we can reference
 # all the labels later
 
-cat data/game-state.8o >> 3dvipermaze.8o
+echo >> 3dvipermaze.8o
+echo ":org 0x1000" >> 3dvipermaze.8o
+echo >> 3dvipermaze.8o
+
 cat data/top-down-tiles.8o >> 3dvipermaze.8o
 
 cat data/strings.8o >> 3dvipermaze.8o
@@ -43,13 +43,18 @@ cat src/print-text.8o >> 3dvipermaze.8o
 cat src/music-player.8o >> 3dvipermaze.8o
 
 cat src/key-input.8o >> 3dvipermaze.8o
-
-# Maps data is an exception, because we need cyclic references there. The map
-# triggers reference maps and the maps reference triggers. So one of them needs
-# to use the regular :unpack, which means they both reside in executable space.
-
 cat src/map-triggers.8o >> 3dvipermaze.8o
+
+# Map data is an exception, because maps reference map triggers. And the game
+# state references the start map. So these need to be loaded last, but reside in
+# upper memory. Put it after the rest:
+
+echo >> 3dvipermaze.8o
+echo ":org 0x6000" >> 3dvipermaze.8o
+echo >> 3dvipermaze.8o
+
 cat data/maps.8o >> 3dvipermaze.8o
+cat data/game-state.8o >> 3dvipermaze.8o
 
 echo "# That's all folks!" >> 3dvipermaze.8o
 
