@@ -19,6 +19,23 @@
   save v0
 }
 
+:macro remove X Y {
+  v0 := X
+  v1 := Y
+  map-point
+  v0 := 0
+  save v0
+}
+
+:macro spawn-snake X Y TRIGGER {
+  v0 := X
+  v1 := Y
+  map-point
+  :calc snake-value { TRIGGER + 0x0D }
+  v0 := snake-value
+  save v0
+}
+
 :macro button-behaviour X Y {
   v0 := X
   v1 := Y
@@ -51,16 +68,193 @@
   jump default-enter-secret-behaviour
 }
 
-# Training1
+# Map 5
 
-: training1-finish
+: map5-button1
+  open-wall 5 5
+  button-behaviour 3 6
+
+: map5-viper1
+  snake-behaviour 3 2
+
+: map5-button2
+  open-wall 9 5
+  open-wall 12 3
+  open-wall 14 5
+  button-behaviour 9 6
+
+: map5-viper2
+  snake-behaviour 11 2
+
+: map5-coin1
+  coin-behaviour 14 2
+
+: map5-button3
+  open-wall 7 3
+  open-wall 3 1
+  spawn-snake 6 4 0xB0
+  remove 3 2
+  button-behaviour 11 6
+
+: map5-viper3
+  snake-behaviour 9 2
+
+: map5-coin2
+  coin-behaviour 5 2
+
+: map5-finish
   finish-behaviour
 
-: training1-coin1
-  coin-behaviour 7 4
+: map5-coin3
+  v0 := 4
+  v1 := 1
+  default-enter-secret-behaviour
+  coin-behaviour 4 1
 
-: training1-coin2
-  coin-behaviour 9 4
+: map5-viper4
+  snake-behaviour 6 4
+
+# Map 4
+
+: map4-finish
+  finish-behaviour
+
+: map4-button1
+  open-wall 8 6
+  button-behaviour 12 3
+
+: map4-coin1
+  coin-behaviour 7 5
+
+: map4-button2
+  close-wall 5 6
+  button-behaviour 8 1
+
+: map4-secret1
+  enter-secret-behaviour 8 5
+
+: map4-button3
+  open-wall 6 5
+  button-behaviour 3 3
+
+: map4-coin2
+  coin-behaviour 4 6
+
+: map4-secret2
+  enter-secret-behaviour 6 4
+
+: map4-viper
+  snake-behaviour 7 3
+
+# Map 3
+
+: map3-button1
+  open-wall 11 1
+  open-wall 3 1
+  close-wall 9 1
+  button-behaviour 10 1
+
+: map3-button2
+  open-wall 11 6
+  close-wall 3 1
+  open-wall 9 1
+  close-wall 11 1
+  button-behaviour 12 3
+
+: map3-snake1
+  snake-behaviour 11 4
+
+: map3-finish
+  finish-behaviour
+
+: map3-secret1
+  open-wall 3 6
+  secret-behaviour
+
+: map3-coin1
+  coin-behaviour 1 5
+
+: map3-coin2
+  coin-behaviour 4 6
+
+: map3-secret2
+  enter-secret-behaviour 2 6
+
+: map3-snake2
+  snake-behaviour 6 6
+
+# Map 2
+
+: map2-button1
+  open-wall 9 3
+  button-behaviour 7 6
+
+: map2-snake1
+  snake-behaviour 11 1
+
+: map2-button2
+  open-wall 5 5
+  button-behaviour 14 1
+
+: map2-snake2
+  snake-behaviour 1 5
+
+: map2-button3
+  open-wall 9 5
+  open-wall 14 3
+  button-behaviour 4 1
+
+: map2-button4
+  open-wall 2 1
+  button-behaviour 4 3
+
+: map2-coin1
+  coin-behaviour 1 2
+
+: map2-coin2
+  v0 := 14
+  v1 := 4
+  default-enter-secret-behaviour
+  coin-behaviour 14 4
+
+: map2-finish
+  finish-behaviour
+
+: map2-secret
+  enter-secret-behaviour 1 1
+
+# Map 1
+
+: map1-button1
+  open-wall 2 4
+  button-behaviour 10 6
+
+: map1-coin1
+  coin-behaviour 8 1
+
+: map1-snake
+  snake-behaviour 8 4
+
+: map1-secret1
+  open-wall 2 2
+  secret-behaviour
+
+: map1-coin2
+  coin-behaviour 1 1
+
+: map1-finish
+  finish-behaviour
+
+: map1-secret2
+  enter-secret-behaviour 1 2
+
+# Training3
+
+: training3-snake
+  snake-behaviour 7 5
+
+: training3-finish
+  finish-behaviour
 
 # Training2
 
@@ -84,69 +278,16 @@
 : training2-enter-secret
   enter-secret-behaviour 5 4
 
-# Training3
+# Training1
 
-: training3-snake
-  snake-behaviour 7 5
-
-: training3-finish
+: training1-finish
   finish-behaviour
 
-# Map1
+: training1-coin1
+  coin-behaviour 7 4
 
-: map1-button1
-  open-wall 9 3
-  button-behaviour 7 6
-
-: map1-snake1
-  snake-behaviour 11 1
-
-: map1-button2
-  open-wall 5 5
-  button-behaviour 14 1
-
-: map1-snake2
-  snake-behaviour 1 5
-
-: map1-button3
-  open-wall 9 5
-  open-wall 14 3
-  button-behaviour 4 1
-
-: map1-button4
-  open-wall 2 1
-  button-behaviour 4 3
-
-: map1-coin1
-  coin-behaviour 1 2
-
-: map1-coin2
-  coin-behaviour 14 4
-
-: map1-finish
-  finish-behaviour
-
-# Map2
-
-: map2-button1
-  open-wall 2 4
-  button-behaviour 10 6
-
-: map2-coin1
-  coin-behaviour 8 1
-
-: map2-snake
-  snake-behaviour 8 4
-
-: map2-secret
-  open-wall 2 2
-  secret-behaviour
-
-: map2-coin2
-  coin-behaviour 1 1
-
-: map2-finish
-  finish-behaviour
+: training1-coin2
+  coin-behaviour 9 4
 
 # Helpers
 
