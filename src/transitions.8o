@@ -109,6 +109,17 @@
   again
   return
 
+: credits-screen
+  i := long credits-screen+0+0
+  bitmap-to-screen
+  v0 := 100
+  delay := v0
+  loop
+    v0 := delay
+    if v0 != 0 then
+  again
+  return
+
 : title-screen
   # Select background music
   unpack-long im-too-young-to-vipe
@@ -218,6 +229,9 @@
   v0 := 2
   i += v0
   load v1
+  v2 := v0
+  v2 |= v1
+  if v2 == 0 then jump end-of-game
   select-map
   i := long game-stats
   v0 := 0
@@ -227,6 +241,20 @@
 : map-stats-go-back
   send-player-back-to-start
   jump wait-key-release
+
+: end-of-game
+  set-text-invisible
+  # Select background music
+  unpack-long im-too-young-to-vipe
+  select-song
+  # Select immediate sound effect
+  unpack-long victory-1
+  interject-song
+  i := long end-of-game-screen+0+0
+  bitmap-to-screen
+  loop
+    clock-tick
+  again
 
 : bitmap-to-screen
   clear
