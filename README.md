@@ -259,3 +259,26 @@ than it would have been to change hard-coded `if` statements. And if the time
 ever does comes that we really do need the speed boost, I'm sure we could
 generate those statements from these trees.
 
+### Confronted with reality
+
+As these things often go, the ambition is greater than the amount of available
+time. Unfortunately I was not able to make as many levels as I wanted, nor give
+every level its own special background music. Most of the map triggers are now
+pretty standard, so having a separate subroutine for each one doesn't really
+make sense anymore. That could do with a refactor to make things easier. Also, I
+would have liked to add the feature of truly hidden hallways in the sense that
+you can't see them in the game, but you can "push through" anyway. That would
+have made for some interesting secrets.
+
+And of course there are the usual time versus quality trade-offs in the last
+pieces of code I wrote. The viper AI and the text routines are kinda sloppy,
+with some weird edge-cases here and there. But it's good enough for the final
+product, and at least it all seems to be stable.
+
+The most obvious thing missing that I wanted to do is make a pure Chip-8
+version of this game. Unfortunately I don't expect to find the time to do so in
+the next couple of days, and after October the Octojam is finished. So maybe
+that can be the challenge for next year 😉
+
+If you have read this far, thanks for showing an interest in my archaic hobby
+project and good luck with your own!
