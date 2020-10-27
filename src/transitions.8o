@@ -221,8 +221,8 @@
 : map-stats-wait-key
   wait-key-release
   wait-key-press
-  if v5 == OCTO_KEY_A then jump map-stats-go-back
-  if v5 == OCTO_KEY_D then jump map-stats-next
+  if vA == OCTO_KEY_A then jump map-stats-go-back
+  if vA == OCTO_KEY_D then jump map-stats-next
   jump map-stats-wait-key
 : map-stats-next
   map-metadata-start

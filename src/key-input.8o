@@ -9,6 +9,8 @@
   # Show mini map
   v0 := OCTO_KEY_1
   if v0 key then jump mini-map
+  v0 := OCTO_KEY_Q
+  if v0 key then jump mini-map
 
   # Rotation
   v0 := OCTO_KEY_A
@@ -110,17 +112,12 @@
   # Fall through
 
 : wait-key-release
+  vA := 0
+: wait-key-release-loop
   clock-tick
-  v0 := OCTO_KEY_W
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_A
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_S
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_D
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_1
-  if v0 key then jump wait-key-release
+  if vA key then jump wait-key-release-loop
+  vA += 1
+  if vA != 16 then jump wait-key-release-loop
   return
 
 : check-triggers
@@ -147,10 +144,10 @@
 # (does play music though)
 # Returns pressed key in v5
 : wait-key-press
-  v5 := 0
+  vA := 0
 : wait-key-press-loop
   clock-tick
-  if v5 key then return
-  v5 += 1
-  if v5 != 16 then jump wait-key-press-loop
+  if vA key then return
+  vA += 1
+  if vA != 16 then jump wait-key-press-loop
   jump wait-key-press
