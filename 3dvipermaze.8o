@@ -2601,8 +2601,8 @@
 : map-stats-wait-key
   wait-key-release
   wait-key-press
-  if v5 == OCTO_KEY_A then jump map-stats-go-back
-  if v5 == OCTO_KEY_D then jump map-stats-next
+  if vA == OCTO_KEY_A then jump map-stats-go-back
+  if vA == OCTO_KEY_D then jump map-stats-next
   jump map-stats-wait-key
 : map-stats-next
   map-metadata-start
@@ -2915,7 +2915,7 @@
 #####################
 # Show the map on screen (top down) with a blinking player position
 # (as an in-game help and for debugging)
-# Pressing 1 exits the mini map and returns to normal gameplay
+# Pressing 1 or Q exits the mini map and returns to normal gameplay
 : mini-map
   wait-key-release
   clear
@@ -2927,6 +2927,8 @@
   delay := v0
 : mini-map-delay-loop
   v0 := OCTO_KEY_1
+  if v0 key then jump exit-from-map
+  v0 := OCTO_KEY_Q
   if v0 key then jump exit-from-map
   v0 := delay
   if v0 == 0 then jump mini-map-loop
@@ -3005,6 +3007,8 @@
 : exit-from-map
   play-click
   v0 := OCTO_KEY_1
+  if v0 key then jump exit-from-map
+  v0 := OCTO_KEY_Q
   if v0 key then jump exit-from-map
   mark-screen-dirty
   return
@@ -3564,6 +3568,8 @@
   # Show mini map
   v0 := OCTO_KEY_1
   if v0 key then jump mini-map
+  v0 := OCTO_KEY_Q
+  if v0 key then jump mini-map
 
   # Rotation
   v0 := OCTO_KEY_A
@@ -3665,17 +3671,12 @@
   # Fall through
 
 : wait-key-release
+  vA := 0
+: wait-key-release-loop
   clock-tick
-  v0 := OCTO_KEY_W
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_A
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_S
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_D
-  if v0 key then jump wait-key-release
-  v0 := OCTO_KEY_1
-  if v0 key then jump wait-key-release
+  if vA key then jump wait-key-release-loop
+  vA += 1
+  if vA != 16 then jump wait-key-release-loop
   return
 
 : check-triggers
@@ -3702,12 +3703,12 @@
 # (does play music though)
 # Returns pressed key in v5
 : wait-key-press
-  v5 := 0
+  vA := 0
 : wait-key-press-loop
   clock-tick
-  if v5 key then return
-  v5 += 1
-  if v5 != 16 then jump wait-key-press-loop
+  if vA key then return
+  vA += 1
+  if vA != 16 then jump wait-key-press-loop
   jump wait-key-press
 #####################
 # Trigger routines for the maps
