@@ -5,6 +5,11 @@
 A fun project for [Octojam 7](https://itch.io/jam/octojam-7). Challenge: write a
 game for the illustrious Chip-8 platform in the month of October.
 
+To play:
+
+* [The game on Itch.io](https://timendus.itch.io/3d-viper-maze)
+* [Just the game, running in the browser](https://timendus.github.io/3d-viper-maze/)
+
 ## The concept
 
 3D Viper Maze is (obviously) an homage to the Sinclair ZX81 game [3D Monster
@@ -254,40 +259,3 @@ than it would have been to change hard-coded `if` statements. And if the time
 ever does comes that we really do need the speed boost, I'm sure we could
 generate those statements from these trees.
 
-## Rough TO DO list:
-
-* [x] Have in-memory models of a map and the player's position
-* [x] Render model of map as a top-down "minimap" (for debugging and fun)
-* [x] Handle keypresses and update player model accordingly
-* [x] Write a convert tool to go from images to binary data that Octo understands
-* [x] Artwork
-  * [x] Draw a gazillion images of "3D" walls
-  * [x] Make the gazillion images prettier
-* [x] 'Sprite' the right images to the screen depending on position and map
-  * [x] Column one
-  * [x] Column two
-  * [x] Column three
-  * [x] Column four
-  * [x] Bugfix S-bends in the hallway
-* [x] Allow switching between 3D view and minimap view
-* [x] Add vipers that kill you and send you back to start
-* [x] Add buttons that change walls
-* [x] Add music
-* [ ] Coding
-  * [x] Fancy viper animation
-  * [x] Vipers that randomly attack you from a distance
-  * [x] Add text routine for some extra feedback
-    * Button: "Something has changed!"
-    * Viper near: "You hear slithering"
-  * [x] Add introduction text
-  * [x] Add stats screen after each level
-* [ ] Pixel art
-  * [x] Title screen
-  * [x] Victory screen for map
-  * [ ] Victory screen for game
-* [ ] Music
-  * [ ] A title song
-  * [ ] One or two more songs for levels
-* [ ] Content
-  * [ ] More levels!
-* [ ] Bonus challenge: make a regular CHIP-8 game out of this?
