@@ -10,6 +10,10 @@ To play:
 * [The game on Itch.io](https://timendus.itch.io/3d-viper-maze)
 * [Just the game, running in the browser](https://timendus.github.io/3d-viper-maze/)
 
+3D Viper Maze has been featured on:
+
+* [Darzington's Jammy Wednesday](https://www.twitch.tv/videos/792004475?t=01h14m00s)
+
 ## The concept
 
 3D Viper Maze is (obviously) an homage to the Sinclair ZX81 game [3D Monster
