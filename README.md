@@ -12,7 +12,7 @@ To play:
 
 3D Viper Maze has been featured on:
 
-* [Darzington's Jammy Wednesday](https://www.twitch.tv/videos/792004475?t=01h14m00s) (Twitch)
+* [Darzington's Jammy Wednesday](https://www.twitch.tv/videos/792131437?t=01h14m00s) (Twitch)
 * [Octo Jam 7 Showcase](https://www.youtube.com/watch?v=XIN3hi85IoE&t=2905s) (YouTube)
 
 ## The concept
