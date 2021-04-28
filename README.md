@@ -15,6 +15,10 @@ To play:
 * [Darzington's Jammy Wednesday](https://www.twitch.tv/videos/792131437?t=01h14m00s) (Twitch)
 * [Octo Jam 7 Showcase](https://www.youtube.com/watch?v=XIN3hi85IoE&t=2905s) (YouTube)
 
+(If you like this, you may also like [my watered-down version of this
+game](/https://github.com/Timendus/3d-vipr-maze) that can run on the Cosmac
+VIP from 1977!)
+
 ## The concept
 
 3D Viper Maze is (obviously) an homage to the Sinclair ZX81 game [3D Monster
@@ -64,7 +68,7 @@ of the pixel art.
 ### Keeping the pace
 
 One of the things I hope to accomplish with this project
-is to have (a version of) it run on the hardware from the period. Or as
+is to have (a version of) it run on the hardware from the period*. Or as
 I don't have the hardware: in an emulator. So when I started making this game I
 thought: how can I keep this below, let's say, 30 cycles per frame and still run
 smoothly?
@@ -93,6 +97,8 @@ the binary decision trees that I implemented for finding the right sprites. It
 purred along quite nicely at 20 or 30 cycles per frame.
 
 That is, until I decided to add music and sound effects.
+
+*) This project can be found at https://github.com/Timendus/3d-vipr-maze
 
 ### Music to my ears
 
@@ -281,9 +287,8 @@ with some weird edge-cases here and there. But it's good enough for the final
 product, and at least it all seems to be stable.
 
 The most obvious thing missing that I wanted to do is make a pure Chip-8
-version of this game. Unfortunately I don't expect to find the time to do so in
-the next couple of days, and after October the Octojam is finished. So maybe
-that can be the challenge for next year 😉
+version of this game. Unfortunately I didn't find the time to do so in
+October, and after October the Octojam was finished. But I took on that project a couple of months later, which resulted in [3D VIP'r Maze](https://github.com/Timendus/3d-vipr-maze) 😉
 
 If you have read this far, thanks for showing an interest in my archaic hobby
 project and good luck with your own!
