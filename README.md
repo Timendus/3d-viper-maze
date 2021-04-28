@@ -16,7 +16,7 @@ To play:
 * [Octo Jam 7 Showcase](https://www.youtube.com/watch?v=XIN3hi85IoE&t=2905s) (YouTube)
 
 (If you like this, you may also like [my watered-down version of this
-game](/https://github.com/Timendus/3d-vipr-maze) that can run on the Cosmac
+game](https://github.com/Timendus/3d-vipr-maze) that can run on the Cosmac
 VIP from 1977!)
 
 ## The concept
