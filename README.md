@@ -1,3 +1,5 @@
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T0DOOWP)
+
 # 3D Viper Maze
 
 ![Screenshot of the opening screen](./screenshot.png)
